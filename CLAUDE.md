@@ -1,6 +1,6 @@
 # Thousand Years Later
 
-A browser game: the player picks a climate and a few real animals, simulates 1,000 years of cartoonish evolution, and gets a big reveal of what the world and its creatures became. Fun and replayability over realism. Full design: [docs/DESIGN.md](docs/DESIGN.md), mockups in [docs/screens/](docs/screens/).
+A browser game: the player picks a climate and a few real animals (or one of three human versions), chooses where they start or lets the game decide, simulates 1,000 years of cartoonish evolution, and gets a big reveal of what the world and its creatures became. Fun and replayability over realism. Full design: [docs/DESIGN.md](docs/DESIGN.md), discoverable creatures in [docs/DISCOVERIES.md](docs/DISCOVERIES.md), mockups in [docs/screens/](docs/screens/).
 
 ## Every session
 
@@ -30,6 +30,6 @@ The whole game (share links, replays, balancing scripts) depends on these.
 
 - All randomness in `src/sim` comes from the seeded PRNG in `src/sim/rng.ts` (`createRng(seed)`).
 - Never use `Math.random()`, `Date`, `performance.now()` or anything else non-deterministic in `src/sim`. `src/sim/purity.test.ts` enforces this.
-- Same seed + same settings must produce the exact same world (deep equal).
+- Same seed + same settings must produce the exact same world (deep equal). Once animals exist, placements are part of the input too: same seed + settings + placements = same history.
 - Iterate arrays in a fixed order. Don't iterate object keys for logic.
 - The UI may use `Math.random()` (e.g. picking a random seed), since it is outside the sim.

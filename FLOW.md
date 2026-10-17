@@ -2,17 +2,18 @@
 
 This file explains the project end to end. Keep it current: update it at the end of every build step.
 
-_Last updated: 2026-10-18, step 1 (world generation and map)._
+_Last updated: 2026-10-18, step 1 (world generation and map). Player flow updated for the revised design (placement step, 13 animals + 3 humans)._
 
 ## Player flow
 
 | Stage | What happens | Status |
 | --- | --- | --- |
 | **Setup: world** | Pick a climate preset, tweak sliders (temperature, rainfall, sea level, chaos), set or randomize a seed. The hex map updates live. | ✅ Built |
-| **Setup: animals** | Pick 3 to 5 of 8 real animals. | ⏳ Planned (step 2) |
-| **Simulate** | 100 ticks of 10 years: plants grow, populations grow, shrink and move, mutations, new species, events. Year counter, speed controls, chronicle. | ⏳ Planned |
-| **Reveal** | "A thousand years later…": before/after maps, headlines, new species, family tree, extinctions, postcard. | ⏳ Planned |
-| **Replay** | Run again with a new seed, or tweak one setting. | ⏳ Planned |
+| **Setup: animals** | Pick 3 to 5 from the roster of 13 animals + 3 human versions. "Start with auto placement" skips straight to the simulation. | ⏳ Planned (step 2) |
+| **Place** (optional) | Every animal starts auto-placed on a hex that suits it (seeded). Drag tokens to place them yourself, even somewhere bad on purpose. Sidebar shows each animal's region and fit. Re-roll auto / Reset. | ⏳ Planned (step 2) |
+| **Simulate** | 100 ticks of 10 years: plants grow, populations grow, shrink and move, mutations, new species, discovery checks (docs/DISCOVERIES.md), events. Year counter, speed controls, chronicle. | ⏳ Planned |
+| **Reveal** | "A thousand years later…": before/after maps, discovery cards, headlines, new species, family tree, extinctions, postcard. | ⏳ Planned |
+| **Replay** | Back to placement with the same setup, tweak one thing, or start fresh with a new seed. | ⏳ Planned |
 
 ## Code flow (what exists today)
 
@@ -85,6 +86,7 @@ flowchart LR
 - `src/render` → reads that data and draws it. Never changes it.
 - `src/ui` → holds settings, calls `generateWorld`, passes the result down. Never changes world objects. To change the world, change the settings and generate again.
 - Later, the simulation will advance world state inside `src/sim` (possibly in a Web Worker), and render/ui will only show snapshots.
+- Planned run inputs: `WorldSettings` + chosen animals + placements. Placements are part of the deterministic input, so the same seed, settings and placements must give the same history. Auto placement will live in `src/sim` and use the seed.
 
 ## Tests
 

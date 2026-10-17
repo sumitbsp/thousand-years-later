@@ -76,6 +76,19 @@ Every meaningful decision and why, newest first. Add an entry whenever a non-obv
 
 ---
 
+## 2026-10-18 · Design revision (Sumit + Claude (planning))
+
+Recorded from the updated docs/DESIGN.md and docs/DISCOVERIES.md.
+
+- **Launch roster grows to 13 animals + 3 humans** (adds elephant, rat, shark, lizard, beetle; weak, strong and smart humans). **Supersedes** "Start with 8 animals". Why: each animal fills a distinct role so every pick changes the run. _Alternatives: the original 8; adding pets, farm animals or dinosaurs (skipped: they overlap existing roles or break the "real animals today" idea)._
+- **Humans are animals like any other**, with no tools, farming, buildings or technology, and three versions with clear tradeoffs. Why: adds a relatable pick without turning into a civ game. Humans can't trigger the "Awakening" ending.
+- **A placement step between setup and simulation.** Everything is auto-placed by default (seeded, picks a suitable region), and the player can drag animals anywhere, including bad spots on purpose. "Start with auto placement" skips it. Why: the same animals in different starting spots give very different outcomes, which adds replay value. Placements are part of the deterministic input.
+- **Discoveries:** special named creatures in three tiers (Re-evolved, Oddity, Legend), with rules in a data file rather than hard-coded logic. Why: rewards experimenting and gives the Bestiary something to collect.
+- **Freshness comes from runs actually differing.** The balancing script tracks winners, species counts, wipeouts, discovery rates and run-to-run variety. Daily world and rare events were added for the same reason.
+- **Later batches** (monkey, octopus, eagle, camel, bat, tortoise, crab, goat) and an ancient pack unlocked through discoveries. New additions lean toward plant-eaters and prey.
+
+---
+
 ## Planning decisions (Sumit + Claude (planning))
 
 - **Name: "Thousand Years Later"**, spelled out instead of "1000", because it reads like a title and is easier to say and search. _Alternatives: "1000 Years Later"._
@@ -87,7 +100,7 @@ Every meaningful decision and why, newest first. Add an entry whenever a non-obv
 - **Seeded, deterministic simulation**, because share links, replays, and balancing scripts all depend on it.
 - **Static site with no backend for now**, because nothing needs a server yet. Saves go in IndexedDB later.
 - **Canvas 2D instead of PixiJS for now**, because the map is simple and fewer dependencies is better at the start. _Alternatives: PixiJS, SVG._
-- **Start with 8 animals** (wolf, rabbit, deer, bear, owl, frog, crocodile, penguin) to keep art manageable.
+- ~~**Start with 8 animals** (wolf, rabbit, deer, bear, owl, frog, crocodile, penguin) to keep art manageable.~~ _Superseded by the design revision above (13 animals + 3 humans)._
 - **Creature portraits built from parts plus mutation overlays later**, because drawing every species by hand doesn't scale.
 - **No 3D, no physics, no individual agents, no evolving brains**: dropped to keep scope achievable.
 - **Ambient "window into another place" idea and the civilization sandbox idea** were considered and set aside. Their best parts (stories, history, the reveal) were folded into this game.

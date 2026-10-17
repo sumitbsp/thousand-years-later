@@ -1,6 +1,6 @@
 # Thousand Years Later
 
-A browser game about cartoonish evolution. Pick a climate and a few real animals, fast-forward 1,000 years, and see what the world and its creatures turned into.
+A browser game about cartoonish evolution. Pick a climate and a few real animals, decide where they start, fast-forward 1,000 years, and see what the world and its creatures turned into.
 
 ![The world setup screen: climate presets and sliders on the left, a generated hex map on the right](docs/screenshot.jpg)
 
@@ -8,12 +8,15 @@ A browser game about cartoonish evolution. Pick a climate and a few real animals
 
 ## The idea
 
-1. **Set up:** choose a world (Ice World, Jungle, Desert, Archipelago, Volcanic, Swamp or Mixed) and 3 to 5 real animals.
-2. **Simulate:** watch centuries fly by as populations spread, mutate, split into new species, and survive (or don't) ice ages, meteors and plagues.
-3. **The reveal:** *"A thousand years later…"* Find out what lives on, what died out, and what strange new creatures appeared.
-4. **Replay:** same setup with a new seed for a whole new history.
+1. **Set up:** choose a world (Ice World, Jungle, Desert, Archipelago, Volcanic, Swamp or Mixed) and 3 to 5 animals from a roster of 13, plus three versions of humans.
+2. **Place:** every animal starts somewhere sensible, or drag them anywhere you like. Penguins in the desert is a valid experiment.
+3. **Simulate:** watch centuries fly by as populations spread, mutate, split into new species, and survive (or don't) ice ages, meteors and plagues.
+4. **The reveal:** *"A thousand years later…"* Find out what lives on, what died out, and what strange new creatures appeared.
+5. **Replay:** try new starting spots, tweak one thing, or use a new seed for a whole new history.
 
-Fun over realism: expect fanged snow rabbits and owls that gave up flying. The full design is in [docs/DESIGN.md](docs/DESIGN.md).
+Along the way you might stumble on **discoveries**: re-evolved mammoths, killer rabbits, even dragons.
+
+Fun over realism: expect fanged snow rabbits and owls that gave up flying. The full design is in [docs/DESIGN.md](docs/DESIGN.md), and discoverable creatures are in [docs/DISCOVERIES.md](docs/DISCOVERIES.md).
 
 ## What works today
 
@@ -52,8 +55,8 @@ For a deeper tour, read [FLOW.md](FLOW.md) (how data moves through the app) and 
 ## Roadmap
 
 - [x] Hex world, biomes, climate presets, rendered map
-- [ ] Animals with stats, food chain, populations growing and moving
-- [ ] Mutations, new species and names, world events, balancing script
+- [ ] Animals and humans with stats, food chain, populations growing and moving, placement screen
+- [ ] Mutations, new species and names, world events, discoveries, balancing script
 - [ ] The reveal screen
 - [ ] Creature portraits and the shareable postcard
-- [ ] Bestiary, discoveries and challenges
+- [ ] Bestiary, challenges, daily world
