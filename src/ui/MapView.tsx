@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { BIOME_NAMES } from '../sim/biomes';
 import type { World } from '../sim/world';
-import { computeLayout, drawMap, regionAt } from '../render/mapRenderer';
+import { THEME } from '../render/colors';
+import { computeLayout, drawMap, regionAt, type MapLayout } from '../render/mapRenderer';
 import { formatPercent } from './labels';
 
 interface Hover {
@@ -10,36 +11,67 @@ interface Hover {
   y: number;
 }
 
-export function MapView({ world }: { world: World }) {
+interface Props {
+  world: World;
+  /** Outlined in amber instead of the hovered hex (e.g. the drop target while dragging). */
+  highlightId?: number | null;
+  /** Outline the highlighted hex in red instead (a drop the animal can't survive). */
+  highlightBlocked?: boolean;
+  /** Extra canvas drawing after the hexes (population dots). */
+  drawExtra?: (ctx: CanvasRenderingContext2D, layout: MapLayout) => void;
+  /** HTML laid over the canvas, in the same CSS-pixel coordinates (tokens). */
+  overlay?: (layout: MapLayout) => ReactNode;
+  showTooltip?: boolean;
+}
+
+export function MapView({ world, highlightId, highlightBlocked = false, drawExtra, overlay, showTooltip = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [dpr, setDpr] = useState(() => window.devicePixelRatio || 1);
   const [hover, setHover] = useState<Hover | null>(null);
 
-  useEffect(() => {
+  // Measure before the first paint, so the map never shows up blank for a frame.
+  useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    const measure = (width: number, height: number) =>
+      setSize((s) => (s.width === Math.floor(width) && s.height === Math.floor(height) ? s : { width: Math.floor(width), height: Math.floor(height) }));
+    const rect = el.getBoundingClientRect();
+    measure(rect.width, rect.height);
     const observer = new ResizeObserver(([entry]) => {
-      if (!entry) return;
-      const { width, height } = entry.contentRect;
-      setSize({ width: Math.floor(width), height: Math.floor(height) });
+      if (entry) measure(entry.contentRect.width, entry.contentRect.height);
     });
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  const layout = useMemo(() => computeLayout(world, size.width, size.height), [world, size]);
-
+  // Browser zoom or moving to another screen changes the pixel ratio: redraw sharp.
   useEffect(() => {
+    const query = window.matchMedia(`(resolution: ${dpr}dppx)`);
+    const onChange = () => setDpr(window.devicePixelRatio || 1);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, [dpr]);
+
+  const layout = useMemo(() => computeLayout(world, size.width, size.height), [world, size]);
+  const outlined = highlightId !== undefined ? highlightId : (hover?.id ?? null);
+
+  useLayoutEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx || size.width === 0) return;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = size.width * dpr;
-    canvas.height = size.height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawMap(ctx, world, layout, hover?.id ?? null);
-  }, [world, layout, size, hover?.id]);
+    // The backing store is in device pixels; resizing it clears it, so only on change.
+    const width = Math.round(size.width * dpr);
+    const height = Math.round(size.height * dpr);
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    ctx.setTransform(width / size.width, 0, 0, height / size.height, 0, 0);
+    drawMap(ctx, world, layout, outlined, highlightBlocked ? THEME.danger : THEME.accent);
+    drawExtra?.(ctx, layout);
+  }, [world, layout, size, dpr, outlined, highlightBlocked, drawExtra]);
 
   function onMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -59,7 +91,8 @@ export function MapView({ world }: { world: World }) {
         onMouseMove={onMouseMove}
         onMouseLeave={() => setHover(null)}
       />
-      {hover && region && (
+      {size.width > 0 && overlay?.(layout)}
+      {showTooltip && hover && region && (
         <div
           className="tooltip"
           style={{

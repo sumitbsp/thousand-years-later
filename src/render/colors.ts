@@ -1,4 +1,5 @@
 import type { Biome } from '../sim/biomes';
+import type { AnimalId } from '../sim/data/animals';
 
 export const BIOME_COLORS: Record<Biome, string> = {
   ocean: '#1E4E5F',
@@ -20,4 +21,25 @@ export const THEME = {
   border: '#24352F',
   text: '#EDE6D6',
   accent: '#E8A33D',
+  danger: '#F07A5A',
+};
+
+/** One distinct color per starting animal, for map dots and population bars. */
+export const ANIMAL_COLORS: Record<AnimalId, string> = {
+  wolf: '#C9CDD2',
+  rabbit: '#E8A33D',
+  deer: '#C98B5A',
+  bear: '#8E5B3A',
+  owl: '#9C8CE0',
+  frog: '#A8E05F',
+  crocodile: '#4F9A6B',
+  penguin: '#6FB7E0',
+  elephant: '#B5A79A',
+  rat: '#E0C9A0',
+  shark: '#4A7FC1',
+  lizard: '#F07A5A',
+  beetle: '#D45FA0',
+  humanWeak: '#F2D16B',
+  humanStrong: '#E05F5F',
+  humanSmart: '#5FD4C9',
 };

@@ -10,6 +10,9 @@ export interface MapLayout {
   size: number;
   originX: number;
   originY: number;
+  /** Canvas size in CSS pixels. */
+  width: number;
+  height: number;
 }
 
 /** Fraction of the hex size that is filled; the rest is the gap between hexes. */
@@ -37,6 +40,8 @@ export function computeLayout(world: World, width: number, height: number, paddi
     size,
     originX: (width - (maxX - minX) * size) / 2 - minX * size,
     originY: (height - (maxY - minY) * size) / 2 - minY * size,
+    width,
+    height,
   };
 }
 
@@ -58,6 +63,7 @@ export function drawMap(
   world: World,
   layout: MapLayout,
   hoveredId: number | null,
+  outlineColor: string = THEME.accent,
 ): void {
   const { width, height } = ctx.canvas;
   ctx.save();
@@ -76,7 +82,7 @@ export function drawMap(
     const center = regionCenter(world, layout, hoveredId);
     tracePath(ctx, center.x, center.y, layout.size * HEX_FILL);
     ctx.lineWidth = Math.max(2, layout.size * 0.06);
-    ctx.strokeStyle = THEME.accent;
+    ctx.strokeStyle = outlineColor;
     ctx.stroke();
   }
 }

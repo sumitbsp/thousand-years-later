@@ -73,10 +73,12 @@ export function classifyBiome(b: BiomeInputs): Biome {
   if (b.temperature < 0.12) return 'ice';
   if (b.temperature < 0.3) return 'tundra';
   // Wet, warm lowland is swamp; the wetter it is, the higher the swamp can reach.
-  if (b.moisture > 0.8 && b.temperature > 0.4 && b.landHeight < 0.35 + (b.moisture - 0.8) * 2.5) return 'swamp';
+  // In the tropics rainforest holds out longer, so swamp needs even wetter ground.
+  const swampLine = b.temperature > 0.7 ? 0.95 : 0.8;
+  if (b.moisture > swampLine && b.temperature > 0.4 && b.landHeight < 0.35 + (b.moisture - swampLine) * 2.5) return 'swamp';
   if (b.touchesWater && b.landHeight < 0.2 && b.moisture < 0.7) return 'coast';
   if (b.temperature > 0.6) {
-    if (b.moisture > 0.6) return 'jungle';
+    if (b.moisture > 0.5) return 'jungle';
     if (b.moisture < 0.4) return 'desert';
     return 'grassland';
   }

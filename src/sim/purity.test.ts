@@ -11,11 +11,13 @@ const FORBIDDEN: [RegExp, string][] = [
   [/performance\.now/, 'performance.now'],
   [/\b(window|document)\./, 'DOM globals'],
   [/from ['"]react/, 'React'],
-  [/from ['"]\.\.\/(render|ui)/, 'render/ui imports'],
+  [/from ['"](\.\.\/)+(render|ui)/, 'render/ui imports'],
 ];
 
 describe('src/sim purity', () => {
-  const files = readdirSync(SIM_DIR).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'));
+  const files = (readdirSync(SIM_DIR, { recursive: true }) as string[]).filter(
+    (f) => f.endsWith('.ts') && !f.endsWith('.test.ts'),
+  );
 
   it.each(files)('%s uses no forbidden APIs', (file) => {
     const source = readFileSync(join(SIM_DIR, file), 'utf8');

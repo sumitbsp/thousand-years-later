@@ -39,6 +39,11 @@ export const GRID_ROWS = 6;
 
 /** Volcanoes only appear above this chaos level. */
 const VOLCANO_CHAOS_THRESHOLD = 0.7;
+/** Land starts breaking into islands above this sea level, fully at ISLAND_FULL. */
+const ISLAND_START = 0.42;
+const ISLAND_FULL = 0.5;
+const EDGE_PULL_DROP = 0.8;
+const ISLAND_ROUGHNESS = 0.8;
 
 export function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
@@ -89,22 +94,34 @@ export function generateWorld(input: WorldSettings): World {
   const volcanoRolls = randomField(rngFor('volcano'), count);
 
   // Elevation: smoothed noise, lowered toward the map edges so land gathers
-  // in the middle, plus a little chaos-driven roughness.
+  // in the middle, plus a little chaos-driven roughness. High seas break the
+  // land up: a weaker edge pull and rougher terrain leave several islands
+  // instead of one continent.
+  const islands = clamp01((settings.seaLevel - ISLAND_START) / (ISLAND_FULL - ISLAND_START));
+  const edgePull = 0.35 * (1 - EDGE_PULL_DROP * islands);
+  const roughness = 0.15 + settings.chaos * 0.25 + ISLAND_ROUGHNESS * islands;
   const rawElevation = coords.map((_, id) => {
     const col = id % cols;
     const row = Math.floor(id / cols);
     const dx = Math.abs(col - (cols - 1) / 2) / ((cols - 1) / 2);
     const dy = Math.abs(row - (rows - 1) / 2) / ((rows - 1) / 2);
     const edge = Math.max(dx, dy);
-    return elevationNoise[id]! - 0.35 * edge * edge + (jitter[id]! - 0.5) * (0.15 + settings.chaos * 0.25);
+    return elevationNoise[id]! - edgePull * edge * edge + (jitter[id]! - 0.5) * roughness;
   });
   const elevation = normalize(rawElevation);
-  const isWater = elevation.map((e) => e < settings.seaLevel);
+  // Sea level is the share of the map under water: the lowest regions flood
+  // (ties broken by id), so a preset gets the same land share on every seed.
+  const waterCount = Math.round(settings.seaLevel * count);
+  const byHeight = elevation.map((e, id) => ({ e, id })).sort((a, b) => a.e - b.e || a.id - b.id);
+  const isWater = elevation.map(() => false);
+  for (const { id } of byHeight.slice(0, waterCount)) isWater[id] = true;
+  // Elevation of the shoreline: the highest flooded region (0 when nothing is).
+  const shore = waterCount > 0 ? byHeight[waterCount - 1]!.e : 0;
 
   const regions: Region[] = coords.map(({ q, r }, id) => {
     const water = isWater[id]!;
     const elev = elevation[id]!;
-    const landHeight = water ? 0 : (elev - settings.seaLevel) / Math.max(1e-6, 1 - settings.seaLevel);
+    const landHeight = water ? 0 : (elev - shore) / Math.max(1e-6, 1 - shore);
     const waterNeighbors = neighbors[id]!.filter((n) => isWater[n]).length;
 
     const moisture = water
@@ -115,7 +132,7 @@ export function generateWorld(input: WorldSettings): World {
     const latitude = Math.abs(r - (rows - 1) / 2) / ((rows - 1) / 2);
     const temperature = clamp01(0.1 + settings.temperature * 0.9 - latitude * 0.25 - landHeight * 0.25);
 
-    const volcanoChance = (settings.chaos - VOLCANO_CHAOS_THRESHOLD) * 2.5;
+    const volcanoChance = (settings.chaos - VOLCANO_CHAOS_THRESHOLD) * 3.5;
     const volcano = !water && landHeight > 0.4 && volcanoRolls[id]! < volcanoChance;
 
     const biome = classifyBiome({
