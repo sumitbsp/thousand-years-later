@@ -15,14 +15,15 @@ A browser game: the player picks a climate and a few real animals (or one of thr
 - Vitest for tests
 - Static site, no backend
 
-Commands: `npm run dev`, `npm test`, `npm run build`, `npm run typecheck`.
+Commands: `npm run dev`, `npm test`, `npm run build`, `npm run typecheck`, `npm run balance`.
 
 ## Folder structure
 
-- `src/sim/` — pure TypeScript game logic. **No DOM, no React, no imports from render/ui.** Must be able to run in a Web Worker or headless Node.
+- `src/sim/` — pure TypeScript game logic (animal data in `src/sim/data/`). **No DOM, no React, no imports from render/ui.** Must be able to run in a Web Worker or headless Node.
 - `src/render/` — canvas drawing. Reads world state, never modifies it.
 - `src/ui/` — React components (setup panel, map view, controls).
 - `docs/` — design doc and mockups.
+- `scripts/` — headless Node scripts (balance check). May import from `src/sim` only.
 
 ## Determinism rules
 
