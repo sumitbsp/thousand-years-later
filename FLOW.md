@@ -4,6 +4,8 @@ This file explains the project end to end. Keep it current: update it at the end
 
 _Last updated: 2026-10-19, step 2 (animals, food chain, populations, placement and simulate screens), after the step 2 playtest fixes (extinctions, biomass ranking, shore habitat, presets, placement)._
 
+> **Design change pending:** the game is moving to a real-Earth storybook map with animated, parts-based creatures. See "Next: step 2.5" below. Sections after it still describe today's code.
+
 ## Player flow
 
 | Stage | What happens | Status |
@@ -13,7 +15,24 @@ _Last updated: 2026-10-19, step 2 (animals, food chain, populations, placement a
 | **Place** (optional) | Every animal starts auto-placed (seeded). Drag tokens (mouse or touch) to place them yourself, anywhere the animal can live (land animals not at sea, sea animals not on land, shore animals by the water). While dragging: target biome and fit, or "Can't survive here" in red. Placing one animal never moves the auto ones. Sidebar: region, fit, Auto/Placed. Re-roll auto / Reset / Start 1,000 years. | ✅ Built |
 | **Simulate** | 100 ticks of 10 years: plants regrow, feeding (plants, predation), growth with shared room, migration, extinction. Year counter, play/pause, 1×/4×/16×, skip to end, species ranked by biomass (bars) with head count, regions and status, raw event list. | ✅ Built (no mutations, species, events yet) |
 | **Run finished** | Placeholder panel at year 1000: top animal (biomass, regions), survivors, extinctions, "Run again" (back to Placement, same setup) and "New setup". | ✅ Placeholder |
-| **Reveal** | "A thousand years later…": before/after maps, discovery cards, headlines, new species, family tree, extinctions, postcard. | ⏳ Planned (step 4) |
+| **Reveal** | "A thousand years later…": before/after maps, showcase of animated survivors, discovery cards, headlines with real places, family tree, extinctions, postcard. | ⏳ Planned (step 4) |
+
+## Next: step 2.5 (designed, not built yet)
+
+The design changed after step 2 (see DECISIONS.md, "Design revision: real Earth, visible chaos", and docs/DESIGN.md). Everything below this section still describes the code as it is today. When step 2.5 is built, rewrite the affected sections and delete this one.
+
+| Area | Today (built) | After step 2.5 (planned) |
+| --- | --- | --- |
+| World | Generated 8 × 6 hex grid from seed + 4 sliders (`world.ts`, `hex.ts`, `presets.ts`) | Real Earth: ~40–50 named regions in `src/sim/data/earthRegions.ts`, Voronoi shapes clipped to land/sea, straits as explicit links. Hex generator kept, unused, for a future "Alien worlds" mode |
+| Setup | 7 climate presets + temperature/rainfall/sea level/chaos sliders + seed | 5 Earth variants (Today, Ice Age, Hot, Drowned, Wild) + chaos slider + run seed. The seed no longer shapes the map |
+| Map drawing | Flat colored hexes (`mapRenderer.ts`) | Storybook atlas: parchment, ink coastlines, watercolor biomes, inked symbols, hand-lettered names. Base map painted once to an offscreen canvas; creatures, territories and effects drawn on top |
+| Animals on the map | Dots sized by count (`populationRenderer.ts`), two-letter tokens | Our own parts-based SVG creatures (`src/art/`), animated (breathing, blinking), inside parchment tokens; species territories as colored washes with dashed edges |
+| Hit testing | `pixelToHex` / `regionAt` | Nearest region center (Voronoi lookup) |
+| Debug | none | Hidden Creature Lab page (all animals, anchor points marked) |
+
+Expected effect on the sim: `RunInput` gets `earthVariant` + `chaos` + `seed` instead of `WorldSettings`; regions, neighbors and biomes come from Earth data. The tick model (feeding, growth, migration, extinction) stays the same. Balance must be re-run on the real Earth.
+
+Later steps add: visible mutations and new species (step 3), animated events and Moments (step 3), the reveal (step 4).
 
 ## Code flow (what exists today)
 

@@ -1,16 +1,16 @@
 # Thousand Years Later
 
-A browser game about cartoonish evolution. Pick a climate and a few real animals, decide where they start, fast-forward 1,000 years, and see what the world and its creatures turned into.
+A browser game about cartoonish evolution. Pick a version of the real Earth and a few real animals, decide where on the map they start, fast-forward 1,000 years, and watch what the world and its creatures turn into.
 
 ![The world setup screen: climate presets and sliders on the left, a generated hex map on the right](docs/screenshot.jpg)
 
-> **Status: early development.** The world generator and map are playable today. Animals, the simulation and the big reveal are next. See the [roadmap](#roadmap).
+> **Status: early development.** Animals, the food chain, placement and the 1,000-year simulation work on a generated hex map. Next: the real Earth as a storybook atlas and animated creatures. See the [roadmap](#roadmap).
 
 ## The idea
 
-1. **Set up:** choose a world (Ice World, Jungle, Desert, Archipelago, Volcanic, Swamp or Mixed) and 3 to 5 animals from a roster of 13, plus three versions of humans.
-2. **Place:** every animal starts somewhere sensible, or drag them anywhere you like. Penguins in the desert is a valid experiment.
-3. **Simulate:** watch centuries fly by as populations spread, mutate, split into new species, and survive (or don't) ice ages, meteors and plagues.
+1. **Set up:** choose an Earth (Today's, Ice Age, Hot, Drowned or Wild) and 3 to 5 animals from a roster of 13, plus three versions of humans.
+2. **Place:** every animal starts somewhere sensible, or drag them anywhere you like. Penguins in the Sahara is a valid experiment.
+3. **Watch:** centuries fly by as populations spread across the map, visibly mutate, split into new species, and survive (or don't) ice ages, meteors and plagues. When something big happens, the game slows down and shows you.
 4. **The reveal:** *"A thousand years later…"* Find out what lives on, what died out, and what strange new creatures appeared.
 5. **Replay:** try new starting spots, tweak one thing, or use a new seed for a whole new history.
 
@@ -55,8 +55,8 @@ For a deeper tour, read [FLOW.md](FLOW.md) (how data moves through the app) and 
 ## Roadmap
 
 - [x] Hex world, biomes, climate presets, rendered map
-- [ ] Animals and humans with stats, food chain, populations growing and moving, placement screen
-- [ ] Mutations, new species and names, world events, discoveries, balancing script
+- [x] Animals and humans with stats, food chain, populations growing and moving, placement screen, balance script
+- [ ] Real Earth as a storybook atlas, Earth variants, animated parts-based creatures, Creature Lab
+- [ ] Visible mutations, new species and names, animated world events, Moments, discoveries
 - [ ] The reveal screen
-- [ ] Creature portraits and the shareable postcard
-- [ ] Bestiary, challenges, daily world
+- [ ] Shareable postcard, Bestiary, challenges, Daily Earth

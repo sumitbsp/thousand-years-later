@@ -7,6 +7,13 @@
 
 Discoveries reward experimenting. "Put an elephant in an Ice World and see what happens" becomes a goal, and "You re-evolved the mammoth" is the kind of moment people share. They also give the Bestiary something to fill and unlock rewards.
 
+## Real Earth notes
+
+- The game now uses the real Earth map. "Island" conditions mean the real islands and island regions: Madagascar, Japan, the British Isles, New Zealand, Greenland, Iceland, Borneo, Sumatra, New Guinea, and Australia (big enough to count as a continent, but isolated enough to trigger island effects).
+- Biome conditions use the region's biome after Earth variant changes (Ice Age Earth turns northern Europe to ice, etc.).
+- Discovery cards and headlines use real place names: "You re-evolved the mammoth in Siberia."
+- Every discovery must be **visible**: its creature art is the base animal with the matching mutation overlays, and a first-time discovery triggers a Moment (see DESIGN.md).
+
 ## Three tiers
 
 | Tier | What it is | How often (target) |

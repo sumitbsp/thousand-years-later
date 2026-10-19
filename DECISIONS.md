@@ -4,6 +4,68 @@ Every meaningful decision and why, newest first. Add an entry whenever a non-obv
 
 ---
 
+## 2026-10-19 · Design revision: real Earth, visible chaos (Sumit + Claude (planning))
+
+After playing step 2, the hex map and dot populations felt flat. These decisions change what the game looks like and plan step 2.5. Nothing below is built yet. Full details: docs/DESIGN.md.
+
+### Core principle: show the chaos, don't tell it
+- **Decision:** every important change must be visible on screen: creatures visibly mutate, events animate on the map, territories spread and shrink, and big moments are pointed out. Text (chronicle, headlines) supports what the player sees; it never replaces it.
+- **Why:** the fun is watching what chaos different combinations generate, not reading "Fanged Snow Rabbit appeared in year 455". A text log of "X spread to Y" was the main reason step 2 felt boring.
+- **Consequence:** creature art and animation are core features, not polish. Visible mutations move into step 3.
+- **Who:** Sumit + Claude (planning)
+
+### The real Earth replaces generated hex worlds
+- **Decision:** the map is the real Earth (Natural Earth public-domain outlines via world-atlas + topojson-client, projected with d3-geo), split into ~40–50 named regions (Sahara, Amazonia, Siberia, The Outback, North Pacific…). **Supersedes** the 8 × 6 hex grid and `generateWorld` as the game's map.
+- **Why:** real places give instant meaning ("penguins in the Sahara", "rabbits conquered Australia"), much better headlines, and are more shareable. A hex grid read as a chart, not a world.
+- **Tradeoff:** the map is the same every run. Variety must come from Earth variants, events, placement, chaos and the seed.
+- **Alternatives:** keeping generated worlds but drawing them as organic Voronoi maps (more variety, less meaning); realistic terrain with strategy-style territories (Humankind/EU4 look, less personality); a cozy diorama (Dorfromantik look, far more art). Shown game references for all three; none landed until "real Earth + storybook map" came up.
+- **Who:** Sumit + Claude (planning)
+
+### Keep the procedural generator for "Alien worlds"
+- **Decision:** leave `generateWorld` and the hex code in place, unused by the main game. It may power an "Alien worlds" unlock later.
+- **Why:** it works, it's tested, and it gives back map variety for players who want it.
+- **Who:** Sumit + Claude (planning)
+
+### Regions are Voronoi cells around named centers
+- **Decision:** each region is a hand-defined center (lon/lat) with biome, temperature, elevation and plant food in `src/sim/data/earthRegions.ts`. Shapes are Voronoi cells (d3-delaunay) clipped to land or sea. Neighbors come from shared edges; continents connect only across listed straits (Bering, Gibraltar, Sinai, Southeast Asia–Australia).
+- **Why:** the simulation only needs regions and neighbors, so it barely changes. Voronoi gives natural-looking borders and makes "which region is under the pointer" a nearest-center lookup, simpler than hex math.
+- **Who:** Sumit + Claude (planning)
+
+### Earth variants replace climate presets
+- **Decision:** Today's Earth, Ice Age Earth (ice over the north, lower seas, land bridges), Hot Earth (deserts spread), Drowned Earth (coasts flooded), Wild Earth (high chaos). Keep the chaos slider. The seed no longer shapes the map; it drives events, mutations and auto placement. **Supersedes** the seven generated presets and the temperature/rainfall/sea-level sliders.
+- **Why:** presets only made sense for generated maps. Variants keep the "pick a world" choice meaningful on a fixed map and set up great challenges ("survive the Ice Age").
+- **Who:** Sumit + Claude (planning)
+
+### Storybook atlas style for the map
+- **Decision:** parchment paper with grain and vignette, ink coastlines with a slight wobble and coastal ripples, watercolor biome washes, inked mountains/trees/dunes, hand-lettered names (IM Fell English), compass rose and sea serpent. Species territories are soft colored washes with dashed edges. The app chrome stays dark; the map is the warm, lit centerpiece. Reference: docs/screens/map-concept.png.
+- **Why:** matches the "natural history" theme, looks unlike WorldBox, hides the roughness of simplified art, and makes a great shareable postcard.
+- **Note:** Sumit is "somewhat" happy with the style; it can keep evolving because drawing is separate from the simulation.
+- **Who:** Sumit + Claude (planning)
+
+### Our own parts-based creature art, not an icon library
+- **Decision:** every animal is our own SVG on a 64×64 grid (ink silhouette, parchment details), built from named parts with pivot points. Animals are grouped into body plans (four-legged, bird, reptile, frog, fish, insect, human), each with anchor points (headTop, mouth, shoulder, back, tailBase, feet, eyes) where mutation overlays snap on. Mutations are drawn per body plan, not per animal. A hidden Creature Lab page shows every animal × mutation. Reference: docs/screens/creatures.png.
+- **Why:** mutations must be visible on the creatures, and animation needs separate parts. An icon set can't grow fangs or wings. No license to manage.
+- **Alternatives:** game-icons.net via `@iconify-json/game-icons` (CC BY 3.0, good silhouettes, but static and needs attribution); emoji sets (clash with the atlas); commissioned art (best quality, slowest; a possible later upgrade).
+- **Note:** Sumit is not 100% satisfied with the first drafts; refine the style in review rounds.
+- **Who:** Sumit + Claude (planning)
+
+### Creatures are animated
+- **Decision:** idle life for all creatures (breathing, blinking, a slight bob, random phase), part motion (tail wag, wing flap, ear twitch, glow pulse), and later hops/walk cycles when moving. One animation clock or CSS, not per-creature timers.
+- **Why:** living creatures make the map feel like a stage. Cheap if parts and pivots exist from the start.
+- **Who:** Sumit + Claude (planning)
+
+### Moments: the game points at big events
+- **Decision:** when something big happens (new species, discovery, mass extinction, a top predator falling, a rare event, a species reaching a new continent), time slows, a pulsing ring marks the spot, and a moment card shows the animated creature, its name, one line of story and what changed. Rate-limited so they stay special; can be turned off.
+- **Why:** 1,000 years fly by in a minute or two; without this, players miss the chaos they came to see.
+- **Who:** Sumit + Claude (planning)
+
+### Re-balance after the map switch
+- **Decision:** don't tune animal stats further on the hex map. Re-run `npm run balance` on the real Earth and tune then. Check lizards specifically (20.6 regions on average in the last report, too far for a heat specialist).
+- **Why:** different regions, neighbors and amount of ocean will change every number. The last hex report (average survival ~72%, highest top share 37%) was good enough to move on.
+- **Who:** Sumit + Claude (planning)
+
+---
+
 ## 2026-10-19 · Step 2 playtest fixes (Claude Code)
 
 Testing step 2 found too few extinctions, a "top animal" based on head count in places, shore animals living at sea, presets off-theme, auto placements that jumped around, and some UI rough edges. These entries record the fixes. Older entries they replace are marked below.

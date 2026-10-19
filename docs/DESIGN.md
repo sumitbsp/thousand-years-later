@@ -2,37 +2,58 @@
 
 > Source of truth for what the game is and how it should eventually look.
 > This describes the FULL game. Each build step implements only what its prompt asks for.
-> See also: docs/DISCOVERIES.md (special creatures players can evolve).
+> See also: docs/DISCOVERIES.md (special creatures players can evolve) and docs/screens/ (visual references).
 
 ## The idea
 
-The player picks a climate and 3 to 5 real animals, decides where they start (or lets the game decide), simulates 1,000 years of cartoonish evolution, and gets a big reveal of what the world and its creatures became.
+The player picks a version of Earth and 3 to 5 real animals, decides where on the real world map they start (or lets the game decide), simulates 1,000 years of cartoonish evolution, and watches what the world and its creatures become.
 
-No realism needed. The goal is surprise, fun and replayability. Starting with real animals gives instant attachment ("what happened to my wolves?"), and the reveal at the end is the payoff.
+No realism needed. The goal is surprise, fun and replayability. Real animals on the real Earth give instant meaning: "what happened to my wolves in Siberia?", "penguins in the Sahara?!"
+
+## The core principle: show the chaos, don't tell it
+
+The fun is **watching** chaos happen, not reading about it. Every important change must be visible on screen:
+
+- A population that mutates **visibly changes**: fangs appear, wings grow, it gets bigger.
+- Stacked mutations produce absurd creatures. That's the point.
+- Events are **animated on the map**: meteors strike, ice creeps south, volcanoes erupt, floods swallow coasts.
+- Species territories **spread and shrink** as colored washes on the map.
+- When something big happens, the game **slows down and points at it** (see Moments).
+
+Text (chronicle, headlines) supports what the player sees. It never replaces it.
 
 ## The core loop
 
-1. **Set up** (about 30 seconds): pick a world and 3 to 5 animals.
+1. **Set up** (about 30 seconds): pick an Earth and 3 to 5 animals.
 2. **Place** (optional): see where every animal starts, drag the ones you care about.
-3. **Simulate** (1 to 2 minutes): watch centuries fly by with events popping up, or skip to the end.
+3. **Watch** (1 to 2 minutes): centuries fly by, creatures mutate, events hit, moments pause to show the big ones. Or skip to the end.
 4. **The reveal**: "A thousand years later…" — what survived, what died out, what new creatures exist, and how the world looks now.
-5. **Replay**: back to placement with the same setup, tweak one thing, or start fresh with a new seed.
+5. **Replay**: back to placement with the same setup, tweak one thing, or start fresh.
 
-The reveal is the whole game. Everything else exists to make it surprising.
+## The world: the real Earth as a storybook atlas
 
-## Setup
+- The map is the **real Earth** (Natural Earth public-domain outlines), drawn like an illustrated storybook atlas. See docs/screens/map-concept.png.
+- About **40–50 named regions**: land regions like Sahara, Amazonia, Congo, Siberia, The Outback, Great Plains, Himalaya, The Steppe, Greenland, Arctic, Patagonia, Arabia, Europe, India, Southeast Asia; and ocean regions like North Pacific, South Atlantic, Indian Ocean, Arctic Ocean, Southern Ocean.
+- Region shapes are **Voronoi cells** around region centers, clipped to land or sea. Neighbors come from shared edges. Continents connect only across real narrow straits (Bering, Gibraltar, Sinai, the Southeast Asia–Australia island chain).
+- Each region has a biome, temperature, elevation and plant food. The map is the same every run.
 
-**World presets:** Ice World, Jungle, Desert, Archipelago, Volcanic, Swamp, Mixed.
+### Earth variants (replace generated presets)
 
-**Sliders:** temperature, rainfall, sea level, and chaos (how often disasters and wild mutations happen).
+| Variant | What changes |
+| --- | --- |
+| Today's Earth | The world as it is (default) |
+| Ice Age Earth | Ice over northern Europe and North America, lower seas, land bridges open (Bering, Australia–New Guinea) |
+| Hot Earth | Deserts spread, rainforests shrink, polar ice melts |
+| Drowned Earth | High seas, low coastal regions become ocean |
+| Wild Earth | High chaos: frequent events and wild mutations |
 
-**Seed:** a text seed plus a "Random" button. Same seed + same settings + same placements = same world and same history.
+**Chaos slider:** how often events and wild mutations happen. **Run seed:** drives events, mutations and auto placement (the map itself never changes).
 
-**Skip option:** "Start with auto placement" goes straight to the simulation for players who don't want to place animals.
+**Variety tradeoff:** because the map is fixed, variety comes from Earth variants, events, placement, chaos and the seed. Later, **Alien worlds** (procedurally generated maps, reusing the old generator) can be an unlock.
 
 ## Animal roster
 
-Each animal fills a different role, so picking it changes the run. Each has simple stats: size, speed, attack, defense, diet, heat tolerance, cold tolerance, land or water, breeding rate.
+Each animal fills a different role. Stats: size, speed, attack, defense, diet, heat tolerance, cold tolerance, land/water/both, breeding rate.
 
 ### Launch roster (13 animals + 3 humans)
 
@@ -47,120 +68,118 @@ Each animal fills a different role, so picking it changes the run. Each has simp
 | Crocodile | Ambush predator, water and land |
 | Penguin | Cold specialist, swimmer |
 | Elephant | Giant plant-eater, tough, breeds very slowly |
-| Rat | Tiny, eats anything, breeds explosively. The great survivor. |
+| Rat | Tiny, eats anything, breeds explosively |
 | Shark | Ocean predator, water only |
 | Lizard | Hot-climate specialist, cold-blooded |
 | Beetle | Insect, huge numbers, armored |
 | Weak humans | Small, breed fast, eat anything. Survive by numbers. |
 | Strong humans | Big attack and defense, need lots of food, breed slowly. Dominate early, crash in hard times. |
-| Smart humans | Better climate tolerance (they "build shelter") and a better chance of helpful mutations, but weak in fights and slow to breed. |
+| Smart humans | Wide climate tolerance ("build shelter"), better mutation luck, but weak in fights and slow to breed. |
 
-**Humans are animals like any other.** No tools, farming, buildings or technology. The three versions must have clear tradeoffs so none wins most runs.
+Humans are animals like any other: no tools, farming, buildings or technology.
 
-### Later batches (unlock rewards)
+**Later batches (unlock rewards):** Monkey, Octopus, Eagle, Camel, Bat, Tortoise, Crab, Goat. **Ancient pack:** mammoth, sabre-toothed cat, giant sloth, dodo, moa.
 
-Monkey, Octopus, Eagle, Camel, Bat, Tortoise, Crab, Goat. New additions should lean toward plant-eaters and prey, since predators are already well covered.
+## Creature art: our own, built from parts
 
-**Ancient pack (later unlock):** mammoth, sabre-toothed cat, giant sloth, dodo, moa. Earned by re-evolving a few of these creatures through discoveries.
+See docs/screens/creatures.png.
 
-**Skipped:** pets and farm animals (they overlap with existing roles), dinosaurs as starting animals (breaks the "real animals today" idea).
+- Every animal is our own SVG, drawn on a 64×64 grid, side view facing right, solid ink (#2E2414) with a few parchment details. Amber (#E8A33D) only for beaks, feet and the smart-human lightbulb. No icon library.
+- Each animal is built from **named parts** (body, head, legs, tail, ears, wings…), each with a **pivot point** for animation.
+- Animals are grouped into **body plans**: four-legged (wolf, rabbit, deer, bear, elephant, rat), bird (owl, penguin), reptile (crocodile, lizard), frog, fish (shark), insect (beetle), human.
+- Each body plan has named **anchor points**: headTop, mouth, shoulder, back, tailBase, feet, eyes. Mutation overlays snap to these.
+- **Mutations are drawn per body plan, not per animal** (~30 mutations across a few body plans, roughly 60–100 small pieces). Size is scaling; color is tinting.
+- Mutation layering has a fixed order (fur under spikes under armor) and exclusion rules (flightless removes wings).
+- Humans: one shared figure. Weak = smaller, shown as a small crowd. Strong = broad torso, thick arms. Smart = normal figure + amber lightbulb.
+- A hidden **Creature Lab** debug page shows every animal with every mutation, to catch broken combinations quickly.
+
+### Animation
+
+1. **Idle life (all creatures):** gentle breathing, blinking, slight bob. Random phase per creature.
+2. **Part motion:** tail wag, wing flap, ear twitch, throat sac, glowing pulse.
+3. **Movement:** hops and simple walk cycles when creatures move on the map. Mutation parts ride along on the part they're attached to.
+4. Keep it cheap: CSS or a single animation clock, not per-creature timers.
 
 ## Placement
 
-A separate screen between setup and simulation.
+A separate screen between setup and the simulation.
 
-- **Opens with every animal already auto-placed**, so the player can just press Start.
-- **Each animal is either "Auto" or "Placed by you."** Dragging an animal onto a hex marks it as placed.
-- **Auto placement is sensible:** it picks a region that suits the animal (penguins near ice or coast, frogs near swamp or water). It uses the seed, so it's the same every time for the same setup.
-- **Players can place animals somewhere bad on purpose.** Penguins in the desert is a valid experiment. Only auto placement is "smart."
-- **Sidebar** lists each animal with its region and how well it fits ("Penguin · Desert · Bad fit").
-- **Buttons:** "Re-roll auto placements" and "Reset."
-- Animals don't share a starting hex unless the player puts them there.
-- Drag and drop must work with mouse and touch.
+- Opens with every animal already **auto-placed**, so the player can just press Start.
+- Each animal is **Auto** (dashed ring) or **Placed by you** (solid amber). Dragging marks it as placed.
+- Auto placement is sensible (penguins near ice or coast, frogs near swamp or water), uses the seed, and stays stable unless the player presses Re-roll or Reset.
+- Players can place animals somewhere bad on purpose (penguins in the Sahara). Land animals can't be dropped in the ocean and vice versa: "Can't survive here".
+- While dragging, the region under the pointer is outlined and labeled with its name and fit ("Drop on Sahara · Bad fit").
+- Faint dotted region borders show only on this screen.
+- Drag and drop works with mouse and touch.
 
 ## The simulation (cartoon evolution)
 
-- **World:** about 36 to 48 hex regions. Each region has a biome, temperature, moisture, elevation and plant food.
 - **Time:** 100 ticks of 10 years each.
 - **Model:** populations per region, not individual creatures.
 
-**Each tick:**
-
-1. Plants grow based on biome and climate.
-2. Each population's fitness is calculated: does it suit the climate, and can it find food (plants, or animals smaller and weaker than it)?
-3. Populations grow, shrink, or move to neighboring regions.
-4. Mutations roll: each population has a chance to gain one from the catalog.
-5. If a mutation helps, that group outgrows the rest. After two or three mutations set a population apart, it becomes a new species with a name and portrait.
-6. New species are checked against the discovery rules (docs/DISCOVERIES.md).
-7. Events reshape biomes and wipe out the unlucky.
+**Each tick:** plants grow → fitness per population → feeding (plant competition, predation, omnivores) → growth and decline → migration → mutation rolls → new species when a population is set apart by 2–3 mutations → discovery check (docs/DISCOVERIES.md) → events → extinction.
 
 ### Mutation catalog (about 32)
-
-Each mutation has a stat effect and a visual change. Some are rare so players hunt for them.
 
 - **Movement:** wings, flightless, gills, webbed feet, extra legs, longer legs
 - **Defense:** shell, spikes, armor plates, thick fur, no fur
 - **Weapons:** horns, tusks, fangs, venom, claws
-- **Diet:** meat-eater (lets plant-eaters become predators)
+- **Diet:** meat-eater
 - **Body:** giant size, tiny size, long neck, long tail
 - **Senses and looks:** camouflage, glowing skin, extra eyes, big ears
 - **Habits:** burrowing, tree-climbing, swimming
 
-### Events
+### Events (all animated on the map)
 
-- **Common:** ice age, drought, flood, plague, volcano.
-- **Rare** (memorable when they happen): supervolcano, comet strike, sudden sea level drop, a plague that targets one animal.
+- **Common:** ice age (ice creeps from the poles), drought (land browns), flood (coasts swallowed), plague (sickly tint on a species' territory), volcano (eruption, darkened land).
+- **Rare:** supervolcano, comet strike (streak, flash, crater), sudden sea level drop (land bridges appear), a plague that targets one animal.
 
 ### Naming
 
-Base animal + key mutations: "Fanged Snow Rabbit", "Glowing Swamp Frog", "Burrow Owl", plus a joke scientific name like *Lepus dentatus*. A species that matches a discovery takes the discovery's name instead ("Woolly Mammoth").
+Base animal + key mutations + often a place: "Fanged Snow Rabbit", "Glowing Swamp Frog", "Burrow Owl", plus a joke scientific name like *Lepus dentatus*. Discovery matches take the discovery's name ("Woolly Mammoth"). Every species is still visually unique.
 
-Every species is still unique even when it matches a discovery: a Woolly Mammoth can also have glowing tusks or extra legs.
+## Moments
 
-## Discoveries
+When something big happens, the game directs attention to it, like a sports replay:
 
-Special creatures players can evolve, in three tiers: **Re-evolved** (echoes of real extinct animals, like the Woolly Mammoth or Megalodon), **Oddity** (this game's own, like the Killer Rabbit), and **Legend** (myths, like the Dragon or Yeti). Full list, conditions and data format: **docs/DISCOVERIES.md**.
+- **Triggers:** new species, discovery, mass extinction, a top predator falling, a rare event, a species crossing to a new continent.
+- **What happens:** time slows (e.g. ¼×), a pulsing ring marks the spot on the map, and a **moment card** pops up with the animated creature (or event), its name, one line of story, and what changed ("Rabbit + thick fur + fangs + meat-eater").
+- Then the speed returns to normal. Players can turn moments off or skip them.
+- Limit how often moments fire so they stay special (e.g. at most one per 30–50 years).
 
 ## The reveal screen
 
-- **World map, before and after**: ice spread, deserts grew, islands flooded.
+- **World map, before and after**: ice spread, deserts grew, coasts flooded, territories redrawn.
+- **The showcase**: every surviving species shown big and animated, the strangest one front and center.
 - **Discovery cards**: big card for first-time discoveries, small badge for repeats.
-- **Survivors gallery**: portraits of every living species, each with a short field-guide entry and a rarity label.
-- **Family tree**: each starting animal with branches showing what it turned into and when.
-- **Extinctions**: a list with causes ("starved during the Great Freeze, year 655").
-- **Headlines**: the three most surprising outcomes, written from templates filled with details from this run ("The rabbits of the eastern plains became hunters after the wolves starved in year 655").
-- **Postcard**: a side-view scene of the most dominant region with its creatures. This is the image people share.
+- **Family tree**: each starting animal with branches showing what it became and when.
+- **Extinctions**: with causes and places ("Wolves starved in Siberia during the Great Freeze, year 655").
+- **Headlines**: the three most surprising outcomes, using real places ("Rabbits conquered Australia").
+- **Postcard**: a storybook-style scene of the most dominant region with its creatures. The image people share.
 
 ## Replayability and keeping it fresh
 
-Discoveries are the collectible layer. The main source of freshness must be that runs actually turn out differently.
-
 - **Randomness:** the same setup gives a different result with a new seed.
-- **Placement:** the same animals in different starting spots lead to very different outcomes.
-- **Bestiary:** every species ever created across runs, with rarity labels and hints for undiscovered entries.
+- **Placement and Earth variants:** the same animals in different places or Earths lead to very different outcomes.
+- **Bestiary:** every species ever created, with rarity labels and hints for undiscovered entries.
 - **Discoveries:** see docs/DISCOVERIES.md.
-- **Challenges:** "Make penguins dominate a desert world", "Survive with only plant-eaters".
-- **Daily world:** everyone gets the same seed and world each day and compares results.
-- **Rare events** that players remember.
-- **Rare endings:** occasionally a non-human species becomes intelligent ("The Awakening"). Humans don't trigger this ending.
+- **Challenges:** "Make penguins rule the Sahara", "Survive the Ice Age with only plant-eaters".
+- **Daily Earth:** everyone gets the same Earth, seed and chaos each day and compares results.
+- **Rare events and rare endings:** occasionally a non-human species becomes intelligent ("The Awakening").
 
-**Balancing must protect variety.** The balancing script tracks:
-- which animal ends up on top (no animal or human version should win most runs),
-- how many new species appear and survive,
-- how often everything dies (should be rare),
-- how often each discovery happens (see target rates in DISCOVERIES.md),
-- how different runs are from each other.
+**Balancing protects variety.** The balance script tracks: which animal ends on top (by biomass and regions, not raw headcount), survival rates (target roughly 50–80% average with clear losers), total wipeouts (rare), new species and discovery rates, and how different runs are. No animal or human version should be top in more than ~35% of the runs it's in.
 
 ## Screens (see docs/screens/)
 
-1. **Setup:** left panel with preset chips, sliders, seed, and the animal roster as a grid of cards (selected cards have an amber border). Right side shows the hex map preview with a biome legend and summary stats. Big amber button to continue, plus a small "Start with auto placement" option.
-2. **Placement:** large hex map with each chosen animal shown as a token on its starting hex. Tokens marked "Auto" are dashed; tokens the player placed are solid amber. A sidebar lists each animal with its region, fit ("Good fit", "Risky", "Bad fit") and an Auto / Placed label. Buttons: Re-roll auto, Reset, and a big "Start 1,000 years".
-3. **Simulating:** a huge "Year 640" counter with the current era name, pause and speed controls (1×, 4×, 16×), "Skip to the end". The map shows colored dots for species. Below it, a timeline from year 0 to 1000 with diamond markers for events. Right side: living species with population bars, and a running chronicle of events, newest first.
-4. **The reveal:** "A thousand years later…" headline with a one-line summary and Run again / Share postcard / Tweak one thing buttons. Then before/after maps, discovery cards, three headline cards, new-species cards with portraits and trait chips, family tree, and a "Gone" list.
+1. **Setup:** Earth variant chips, chaos slider, run seed, the 16 animals as creature cards (selected = amber border), the storybook map preview. "Choose starting spots" or "Start now with auto placement".
+2. **Placement:** the atlas map with creature tokens (auto = dashed, placed = amber), region highlight while dragging, sidebar with each animal's region, fit and Auto/Placed label, Re-roll auto, Reset, "Start 1,000 years".
+3. **Watching:** big year counter and era name, pause and speed controls (1×, 4×, 16×), "Skip to the end", the atlas map with territory washes, animated events, creature tokens and moment cards. Below: a timeline with event markers. Sidebar: living species with creature icons and population bars (extinct ones struck through), and the chronicle.
+4. **The reveal:** see above.
+5. **Creature Lab** (hidden debug page).
 
 ## Visual style
 
-Dark "natural history at night" theme. Calm and slightly stylized, not neon.
+**App chrome:** dark "natural history at night" theme. The map is the warm, lit centerpiece, like an open atlas under a lamp.
 
 | Role | Color |
 | --- | --- |
@@ -172,35 +191,33 @@ Dark "natural history at night" theme. Calm and slightly stylized, not neon.
 | Accent (amber) | #E8A33D |
 | Text on accent | #1A1206 |
 
-**Biome colors:** ocean #1E4E5F, coast #D8C58E, grassland #8AA650, forest #3F6B3A, jungle #2E7D4F, desert #D9A95F, tundra #B9C8C2, ice #EEF3F2, mountains #8A8378, swamp #5E6E3A.
+**Atlas map:** parchment paper (#E2D4B2 sea, #EFE5CB land) with grain and a darker vignette; ink coastlines (#3A2E1C) with a slight hand-drawn wobble and ripple lines along coasts; soft watercolor biome washes (grassland #C6C485, forest #8EA376, jungle #5F8C5E, desert #E3BE7E, tundra #BFC6B3, swamp #7F8C62, ice #FBF8F0); inked mountain, tree and dune symbols; hand-lettered names; compass rose and a small sea serpent. Paint the base map once to an offscreen canvas and redraw only creatures, territories and effects.
 
-**Fonts:** Bricolage Grotesque (headings, the big year counter), IBM Plex Sans (body), IBM Plex Mono (numbers, years, seeds).
+**Species territory colors:** distinct, muted washes with dashed edges (e.g. rabbit #D9822B, wolf #4C6A9C, frog #2F8F83). Each species keeps its color for the whole run.
 
-**Shapes:** rounded corners (8 to 16px), pill-shaped chips and buttons, pointy-top hexes with a small gap between them.
-
-**Creature art:** flat shapes with a consistent dark outline, built from parts (body, head, legs, tail) plus mutation overlays (wings, horns, shell, fangs). Size and color come from scaling and tinting. Use simple placeholders until the simulation is fun.
+**Fonts:** Bricolage Grotesque (headings, the year counter), IBM Plex Sans (UI body), IBM Plex Mono (numbers, years, seeds), IM Fell English (map labels, field-guide text, moment-card stories).
 
 ## Tech
 
 - TypeScript + Vite + React, Vitest for tests.
-- Simulation in pure TypeScript under `src/sim/` (later in a Web Worker).
-- Canvas 2D for the map; SVG for creature portraits.
-- Seeded random generator; the simulation must be fully deterministic. Placements are part of the run's inputs.
-- Discovery rules live in a data file, not hard-coded logic.
-- Static site, no backend. Bestiary and discoveries saved in IndexedDB.
-- A headless balancing script that runs 1,000 simulations and reports the metrics listed under "Balancing must protect variety".
+- Simulation in pure TypeScript under `src/sim/` (move to a Web Worker only if needed; a run currently takes ~16 ms).
+- Earth data: world-atlas + topojson-client, d3-geo for projection, d3-delaunay for Voronoi regions. Pinned versions.
+- Map: Canvas 2D, scaled for devicePixelRatio. Creatures: SVG from parts.
+- Seeded random generator; the simulation is fully deterministic. RunInput = Earth variant + chaos + seed + animals + placements.
+- Discovery rules in a data file. Static site, no backend. Bestiary in IndexedDB.
+- Headless balance script (see "Balancing protects variety").
 
 ## Milestones (part-time)
 
-1. **Week 1:** hex world, biomes, climate presets, rendered map. ✅
-2. **Week 2:** the 13 animals + 3 humans with stats, food chain, populations growing and moving, placement screen with auto placement and drag and drop.
-3. **Week 3:** mutations (including flightless and meat-eater), new species, naming, events, discoveries. Build the balancing script.
-4. **Week 4:** reveal screen with placeholder art, including discovery cards.
-5. **Weeks 5–6:** part-based portraits and the postcard scene.
-6. **Week 7:** Bestiary, challenges, daily world, share card.
-7. **Week 8:** balancing and polish.
+1. ✅ World generation and map (later replaced by real Earth).
+2. ✅ Animals, food chain, populations, placement screen, balance script.
+3. **2.5 — Real Earth + creatures:** Earth data and regions, Earth variants, storybook atlas rendering, territory washes, parts-based creature art with idle animation, Creature Lab.
+4. **3 — Visible chaos:** mutations (drawn on creatures), new species, naming, discoveries, animated events, moments.
+5. **4 — The reveal:** before/after maps, showcase, family tree, extinctions, headlines, discovery cards.
+6. **5 — Postcard, Bestiary, challenges, Daily Earth, share links.**
+7. **6 — Animation polish (walk cycles, event effects), balancing, performance.**
 
-**The week 4 test:** if reading the reveal with placeholder art already makes you want to hit "Run again", the idea works.
+**The test after step 3:** run the same setup 5 times. If at least 2 or 3 runs make you go "wait, what happened to the owls?", it's working.
 
 ## Out of scope
 
