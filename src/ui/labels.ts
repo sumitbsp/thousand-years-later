@@ -1,18 +1,10 @@
 // Display helpers for the UI. Not part of the simulation, so Math.random() is fine here.
 
-import type { ClimateSettings } from '../sim/presets';
+const CHAOS_WORDS = ['Calm', 'Low', 'Medium', 'High', 'Wild'];
 
-const SCALES: Record<keyof ClimateSettings, string[]> = {
-  temperature: ['Frozen', 'Cold', 'Mild', 'Warm', 'Hot'],
-  rainfall: ['Parched', 'Dry', 'Moderate', 'Wet', 'Soaked'],
-  seaLevel: ['Very low', 'Low', 'Medium', 'High', 'Flooded'],
-  chaos: ['Calm', 'Low', 'Medium', 'High', 'Wild'],
-};
-
-/** Word for a 0–1 slider value, e.g. temperature 0.55 → "Mild". */
-export function describe(key: keyof ClimateSettings, value: number): string {
-  const words = SCALES[key];
-  return words[Math.min(words.length - 1, Math.floor(value * words.length))]!;
+/** Word for the 0–1 chaos slider, e.g. 0.55 → "Medium". */
+export function describeChaos(value: number): string {
+  return CHAOS_WORDS[Math.min(CHAOS_WORDS.length - 1, Math.floor(value * CHAOS_WORDS.length))]!;
 }
 
 export function formatPercent(value: number): string {

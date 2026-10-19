@@ -772,3 +772,7 @@ input[type='range']::-moz-range-thumb {
     font-size: 56px;
   }
 }
+/* Step 2.5a: Earth variant blurb */
+.variant-blurb {
+  margin: -4px 0 12px;
+}

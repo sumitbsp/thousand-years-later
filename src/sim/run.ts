@@ -4,14 +4,19 @@
 
 import type { AnimalId } from './data/animals';
 import { getAnimal, habitatFit, huntVulnerability, reachableRegions, regionFitness } from './ecology';
+import { buildEarthWorld, type EarthVariantId, type EarthWorld } from './earth';
 import { autoPlace, type Placements } from './placement';
 import { createRng } from './rng';
-import { generateWorld, type World, type WorldSettings } from './world';
 
+/** Everything needed to reproduce a run exactly. */
 export interface RunInput {
-  worldSettings: WorldSettings;
+  earthVariant: EarthVariantId;
+  /** 0–1. How often events and wild mutations happen (from step 3; unused by the tick so far). */
+  chaos: number;
+  /** Drives auto placement and the run's randomness. The map never depends on it. */
+  seed: string;
   chosenAnimals: AnimalId[];
-  /** animalId → regionId. Missing animals are auto-placed with the world seed. */
+  /** animalId → regionId. Missing animals are auto-placed with the seed. */
   placements: Placements;
 }
 
@@ -48,7 +53,7 @@ export interface SpeciesTrack {
 
 export interface RunState {
   input: RunInput;
-  world: World;
+  world: EarthWorld;
   tick: number;
   year: number;
   /** Plant food per region, indexed by region id. */
@@ -88,10 +93,12 @@ const MIN_PLANT_FACTOR = 0.2;
 const MAX_PLANT_FACTOR = 1.6;
 /** Most of the plants a region can lose to grazing in one tick. */
 const PLANT_GRAZE_CAP = 0.8;
-/** Background meat (fish, insects, small game) per region per tick. */
+/** Background meat (fish, insects, small game) per region per tick, in a normal year. */
 const WILD_MEAT = 8;
 /** Seas teem with fish: wild meat at sea is this many times the land amount. */
-const SEA_MEAT = 1.3;
+const SEA_MEAT = 1.15;
+/** Wild meat follows the plant factor raised to this power (0 = steady, 1 = swings like plants). */
+const WILD_MEAT_SWING = 0.5;
 /** Share of an omnivore's (1 − diet) it can swap from meat to plants. */
 const OMNIVORE_TOP_UP = 0.5;
 const MAX_KILL_SHARE = 0.8;
@@ -130,8 +137,8 @@ export function capacity(animalId: AnimalId): number {
 }
 
 export function createRun(input: RunInput): RunState {
-  const world = generateWorld(input.worldSettings);
-  const placements = autoPlace(world, input.chosenAnimals, input.placements, input.worldSettings.seed);
+  const world = buildEarthWorld(input.earthVariant);
+  const placements = autoPlace(world, input.chosenAnimals, input.placements, input.seed);
   const populations: Population[] = input.chosenAnimals.map((animalId) => ({
     animalId,
     regionId: placements[animalId]!,
@@ -164,7 +171,7 @@ export function step(state: RunState): { state: RunState; events: RunEvent[] } {
   const { world, input } = state;
   const tick = state.tick + 1;
   const year = tick * YEARS_PER_TICK;
-  const rng = createRng(`${input.worldSettings.seed}|tick|${tick}`);
+  const rng = createRng(`${input.seed}|tick|${tick}`);
   const events: RunEvent[] = [];
 
   // 1. Plants move halfway toward their ceiling: biome plantFood scaled by the
@@ -173,9 +180,11 @@ export function step(state: RunState): { state: RunState; events: RunEvent[] } {
   const weather = world.regions.map(
     (r) => state.weather[r.id]! * WEATHER_PERSISTENCE + (rng.next() - 0.5) * WEATHER_SWING,
   );
+  const factors = world.regions.map((region) =>
+    Math.min(MAX_PLANT_FACTOR, Math.max(MIN_PLANT_FACTOR, 1 + climate + weather[region.id]!)),
+  );
   const plants = world.regions.map((region) => {
-    const factor = Math.min(MAX_PLANT_FACTOR, Math.max(MIN_PLANT_FACTOR, 1 + climate + weather[region.id]!));
-    const ceiling = region.plantFood * PLANT_SCALE * factor;
+    const ceiling = region.plantFood * PLANT_SCALE * factors[region.id]!;
     const current = state.plants[region.id]!;
     return current + (ceiling - current) * PLANT_REGROW;
   });
@@ -207,11 +216,12 @@ export function step(state: RunState): { state: RunState; events: RunEvent[] } {
     available -= sharePlants(plantDemand, weight, got, available);
 
     // 3b. Meat: each predator splits its demand over the prey it can catch,
-    // weighted by how catchable each is. Wild meat is always catchable.
+    // weighted by how catchable each is. Wild meat is always catchable, and
+    // bad years hit it too (half as hard as plants).
     const meatDemand = here.map((p, i) => need[i]! * getAnimal(p.animalId).diet);
     const vuln = here.map((pred) => here.map((prey) => huntVulnerability(getAnimal(pred.animalId), getAnimal(prey.animalId))));
     const meatValue = here.map((p) => 0.3 + getAnimal(p.animalId).size);
-    const wildMeat = region.isWater ? WILD_MEAT * SEA_MEAT : WILD_MEAT;
+    const wildMeat = (region.isWater ? WILD_MEAT * SEA_MEAT : WILD_MEAT) * factors[region.id]! ** WILD_MEAT_SWING;
     // Requests per predator i on prey j (index here.length = wild meat).
     const requested = here.map(() => 0).concat([0]);
     const shares = here.map((_, i) => {

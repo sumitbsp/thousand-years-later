@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { ANIMALS } from './data/animals';
 import { getAnimal, habitatFit, huntVulnerability, reachableRegions, regionFitness } from './ecology';
-import { PRESETS } from './presets';
-import { generateWorld, regionNeighbors } from './world';
+import { EARTH_VARIANTS, buildEarthWorld, earthRegionIndex } from './earth';
+import { regionNeighbors } from './worldMap';
 
-const worlds = PRESETS.flatMap((p) => [0, 1, 2].map((i) => generateWorld({ seed: `eco-${p.id}-${i}`, ...p.climate })));
+const worlds = EARTH_VARIANTS.map((v) => buildEarthWorld(v.id));
 
 describe('ecology', () => {
   it('sharks only reach water, land animals only reach land', () => {
@@ -16,7 +16,7 @@ describe('ecology', () => {
     }
   });
 
-  it('owls cross exactly one water hex', () => {
+  it('owls cross exactly one water region', () => {
     let crossings = 0;
     for (const world of worlds) {
       for (const region of world.regions.filter((r) => !r.isWater)) {
@@ -24,7 +24,7 @@ describe('ecology', () => {
         for (const id of reachableRegions(world, getAnimal('owl'), region.id)) {
           expect(world.regions[id]!.isWater).toBe(false);
           if (near.has(id)) continue;
-          // Not a neighbor: there must be a water hex between the two.
+          // Not a neighbor: there must be a water region between the two.
           crossings++;
           const bridge = regionNeighbors(world, region.id).filter(
             (n) => world.regions[n]!.isWater && regionNeighbors(world, n).includes(id),
@@ -53,6 +53,12 @@ describe('ecology', () => {
         }
       }
     }
+  });
+
+  it('owls reach Madagascar from East Africa; wolves do not', () => {
+    const world = buildEarthWorld('today');
+    expect(reachableRegions(world, getAnimal('owl'), earthRegionIndex('eastAfrica'))).toContain(earthRegionIndex('madagascar'));
+    expect(reachableRegions(world, getAnimal('wolf'), earthRegionIndex('eastAfrica'))).not.toContain(earthRegionIndex('madagascar'));
   });
 
   it('shore animals never reach open water', () => {

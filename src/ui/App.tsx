@@ -1,11 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { AnimalId } from '../sim/data/animals';
+import { DEFAULT_VARIANT, buildEarthWorld, getVariant, type EarthVariantId } from '../sim/earth';
 import { autoPlace, withFixed, type Placements } from '../sim/placement';
-import { DEFAULT_PRESET, PRESETS, type ClimateSettings, type Preset } from '../sim/presets';
 import type { RunInput } from '../sim/run';
-import { generateWorld } from '../sim/world';
 import { AnimalRoster } from './AnimalRoster';
-import { describe } from './labels';
 import { Legend } from './Legend';
 import { MapView } from './MapView';
 import { PlacementScreen } from './PlacementScreen';
@@ -20,8 +18,8 @@ export const MAX_ANIMALS = 5;
 export function App() {
   const [screen, setScreen] = useState<Screen>('setup');
   const [seed, setSeed] = useState('mossy-river-42');
-  const [climate, setClimate] = useState<ClimateSettings>(DEFAULT_PRESET.climate);
-  const [presetId, setPresetId] = useState<string | null>(DEFAULT_PRESET.id);
+  const [variantId, setVariantId] = useState<EarthVariantId>(DEFAULT_VARIANT.id);
+  const [chaos, setChaos] = useState(DEFAULT_VARIANT.defaultChaos);
   const [chosen, setChosen] = useState<AnimalId[]>(['wolf', 'rabbit', 'owl', 'frog']);
   // Placement: animals the player dragged, plus auto spots for the rest. Auto
   // spots only change on entering placement, Re-roll or Reset, never on a drop.
@@ -31,22 +29,14 @@ export function App() {
   // Bumped to restart the simulate screen even when the input is unchanged.
   const [runKey, setRunKey] = useState(0);
 
-  // The world is derived from settings; every change regenerates it.
-  const world = useMemo(() => generateWorld({ seed, ...climate }), [seed, climate]);
-
-  const preset = PRESETS.find((p) => p.id === presetId);
-  const presetName = preset?.name ?? 'Custom';
-  const title = `${presetName}, ${describe('temperature', climate.temperature).toLowerCase()} and ${describe('rainfall', climate.rainfall).toLowerCase()}`;
+  // The map depends only on the Earth variant (built once per variant and cached).
+  const world = buildEarthWorld(variantId);
+  const variant = getVariant(variantId);
   const canContinue = chosen.length >= MIN_ANIMALS && chosen.length <= MAX_ANIMALS;
 
-  function choosePreset(p: Preset) {
-    setPresetId(p.id);
-    setClimate(p.climate);
-  }
-
-  function changeClimate(key: keyof ClimateSettings, value: number) {
-    setPresetId(null);
-    setClimate((c) => ({ ...c, [key]: value }));
+  function chooseVariant(id: EarthVariantId) {
+    setVariantId(id);
+    setChaos(getVariant(id).defaultChaos);
   }
 
   function toggleAnimal(id: AnimalId) {
@@ -60,7 +50,7 @@ export function App() {
   }
 
   function startRun(placements: Placements) {
-    setRunInput({ worldSettings: world.settings, chosenAnimals: chosen, placements });
+    setRunInput({ earthVariant: variantId, chaos, seed, chosenAnimals: chosen, placements });
     setRunKey((k) => k + 1);
     setScreen('simulate');
   }
@@ -99,7 +89,7 @@ export function App() {
         )}
         {screen === 'simulate' && runInput && (
           <span className="mono muted topbar-link">
-            {presetName} · seed {seed}
+            {variant.name} · seed {seed}
           </span>
         )}
       </header>
@@ -108,12 +98,12 @@ export function App() {
         <main className="layout">
           <div className="setup-column">
             <SetupPanel
+              variantId={variantId}
+              chaos={chaos}
               seed={seed}
-              climate={climate}
-              presetId={presetId}
+              onVariant={chooseVariant}
+              onChaosChange={setChaos}
               onSeedChange={setSeed}
-              onPreset={choosePreset}
-              onClimateChange={changeClimate}
             />
             <AnimalRoster chosen={chosen} onToggle={toggleAnimal} />
             <button className="primary" disabled={!canContinue} onClick={goToPlacement}>
@@ -127,10 +117,10 @@ export function App() {
             <div className="map-header">
               <div>
                 <div className="eyebrow">Year 0 · Your world</div>
-                <h1>{title}</h1>
+                <h1>{variant.name}</h1>
               </div>
               <div className="mono muted">
-                {world.regions.length} regions · seed {seed || '(empty)'}
+                {world.regions.filter((r) => !r.isWater).length} land · {world.regions.filter((r) => r.isWater).length} sea regions
               </div>
             </div>
             <MapView world={world} />
@@ -145,7 +135,7 @@ export function App() {
           chosen={chosen}
           fixed={fixed}
           placements={withFixed(chosen, auto, fixed)}
-          subtitle={`${presetName} · seed ${seed}`}
+          subtitle={`${variant.name} · seed ${seed}`}
           onFixedChange={setFixed}
           onReroll={reroll}
           onReset={reset}

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { BIOME_NAMES } from '../sim/biomes';
-import type { World } from '../sim/world';
+import type { EarthWorld } from '../sim/earth';
 import { THEME } from '../render/colors';
 import { computeLayout, drawMap, regionAt, type MapLayout } from '../render/mapRenderer';
 import { formatPercent } from './labels';
@@ -12,12 +12,12 @@ interface Hover {
 }
 
 interface Props {
-  world: World;
-  /** Outlined in amber instead of the hovered hex (e.g. the drop target while dragging). */
+  world: EarthWorld;
+  /** Outlined in amber instead of the hovered region (e.g. the drop target while dragging). */
   highlightId?: number | null;
-  /** Outline the highlighted hex in red instead (a drop the animal can't survive). */
+  /** Outline the highlighted region in red instead (a drop the animal can't survive). */
   highlightBlocked?: boolean;
-  /** Extra canvas drawing after the hexes (population dots). */
+  /** Extra canvas drawing after the regions (population dots). */
   drawExtra?: (ctx: CanvasRenderingContext2D, layout: MapLayout) => void;
   /** HTML laid over the canvas, in the same CSS-pixel coordinates (tokens). */
   overlay?: (layout: MapLayout) => ReactNode;
@@ -54,7 +54,7 @@ export function MapView({ world, highlightId, highlightBlocked = false, drawExtr
     return () => query.removeEventListener('change', onChange);
   }, [dpr]);
 
-  const layout = useMemo(() => computeLayout(world, size.width, size.height), [world, size]);
+  const layout = useMemo(() => computeLayout(size.width, size.height), [size]);
   const outlined = highlightId !== undefined ? highlightId : (hover?.id ?? null);
 
   useLayoutEffect(() => {
@@ -77,7 +77,7 @@ export function MapView({ world, highlightId, highlightBlocked = false, drawExtr
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const id = regionAt(world, layout, x, y);
+    const id = regionAt(layout, x, y);
     setHover(id === null ? null : { id, x, y });
   }
 
@@ -100,12 +100,12 @@ export function MapView({ world, highlightId, highlightBlocked = false, drawExtr
             top: Math.min(hover.y + 14, size.height - 130),
           }}
         >
-          <div className="tooltip-title">{BIOME_NAMES[region.biome]}</div>
+          <div className="tooltip-title">{region.name}</div>
           <dl>
+            <dt>Biome</dt>
+            <dd>{region.flooded ? 'Flooded' : BIOME_NAMES[region.biome]}</dd>
             <dt>Temperature</dt>
             <dd>{formatPercent(region.temperature)}</dd>
-            <dt>Moisture</dt>
-            <dd>{formatPercent(region.moisture)}</dd>
             <dt>Elevation</dt>
             <dd>{formatPercent(region.elevation)}</dd>
             <dt>Plant food</dt>

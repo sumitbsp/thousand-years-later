@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { ANIMALS, ANIMAL_IDS } from './data/animals';
 import { getAnimal, regionFitness } from './ecology';
+import { EARTH_VARIANTS, buildEarthWorld } from './earth';
 import { autoPlace, withFixed } from './placement';
-import { PRESETS } from './presets';
-import { generateWorld } from './world';
 
-const world = generateWorld({ seed: 'place-test', ...PRESETS[0]!.climate });
+const world = buildEarthWorld('today');
 
 describe('autoPlace', () => {
   it('is deterministic', () => {
@@ -38,9 +37,9 @@ describe('autoPlace', () => {
   });
 
   it('places everyone on distinct, livable regions', () => {
-    for (const preset of PRESETS) {
-      for (let i = 0; i < 5; i++) {
-        const w = generateWorld({ seed: `p-${i}`, ...preset.climate });
+    for (const variant of EARTH_VARIANTS) {
+      for (let i = 0; i < 12; i++) {
+        const w = buildEarthWorld(variant.id);
         const chosen = ANIMAL_IDS.slice(i, i + 5);
         const result = autoPlace(w, chosen, {}, `seed-${i}`);
         chosen.forEach((id, k) => {
@@ -48,7 +47,7 @@ describe('autoPlace', () => {
           const earlier = new Set(chosen.slice(0, k).map((e) => result[e]!));
           if (earlier.has(result[id]!)) {
             const livable = w.regions.filter((r) => regionFitness(w, getAnimal(id), r.id) > 0);
-            expect(livable.every((r) => earlier.has(r.id)), `${preset.name}: ${id}`).toBe(true);
+            expect(livable.every((r) => earlier.has(r.id)), `${variant.name}: ${id}`).toBe(true);
           }
         });
         chosen.forEach((id) => {

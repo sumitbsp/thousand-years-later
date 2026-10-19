@@ -1,12 +1,12 @@
-// Headless balance check: runs many random simulations and prints survival
-// and "top animal" rates. Usage: npm run balance [-- --runs 500 --seed balance]
+// Headless balance check: runs many random simulations on the Earth variants
+// and prints survival and "top animal" rates, overall and per variant.
+// Usage: npm run balance [-- --runs 500 --seed balance]
 // Uses the sim's seeded RNG so a report can be reproduced exactly.
 
 import { ANIMALS, type AnimalId } from '../src/sim/data/animals';
-import { PRESETS } from '../src/sim/presets';
+import { EARTH_VARIANTS, type EarthVariantId } from '../src/sim/earth';
 import { createRng, type Rng } from '../src/sim/rng';
-import { runToEnd, speciesBiomass, speciesRegions, speciesTotal } from '../src/sim/run';
-import { clamp01, type WorldSettings } from '../src/sim/world';
+import { runToEnd, speciesBiomass, speciesRegions, speciesTotal, type RunInput } from '../src/sim/run';
 
 function arg(name: string, fallback: string): string {
   const i = process.argv.indexOf(`--${name}`);
@@ -37,16 +37,10 @@ function newTallies(): Map<AnimalId, Tally> {
   return new Map(ANIMALS.map((a) => [a.id, { picked: 0, survived: 0, top: 0, regions: 0, topCount: 0, topEarly: 0, worstDrop: 0 }]));
 }
 
-function randomWorld(r: Rng, seed: string): WorldSettings {
-  const preset = r.pick(PRESETS);
-  const jitter = (v: number) => clamp01(v + r.range(-0.1, 0.1));
-  return {
-    seed,
-    temperature: jitter(preset.climate.temperature),
-    rainfall: jitter(preset.climate.rainfall),
-    seaLevel: jitter(preset.climate.seaLevel),
-    chaos: jitter(preset.climate.chaos),
-  };
+/** A random variant (each equally likely) with its default chaos. The seed only moves auto placement and weather. */
+function randomSetup(r: Rng, seed: string): Omit<RunInput, 'chosenAnimals' | 'placements'> {
+  const variant = r.pick(EARTH_VARIANTS);
+  return { earthVariant: variant.id, chaos: variant.defaultChaos, seed };
 }
 
 function pickAnimals(r: Rng, pool: AnimalId[], count: number): AnimalId[] {
@@ -71,8 +65,8 @@ function best(ids: readonly AnimalId[], score: (id: AnimalId) => number): Animal
 }
 
 /** Runs one simulation and records it. Returns how many chosen animals survived. */
-function record(tally: Map<AnimalId, Tally>, worldSettings: WorldSettings, chosenAnimals: AnimalId[]): number {
-  const { history } = runToEnd({ worldSettings, chosenAnimals, placements: {} });
+function record(tally: Map<AnimalId, Tally>, setup: Omit<RunInput, 'chosenAnimals' | 'placements'>, chosenAnimals: AnimalId[]): number {
+  const { history } = runToEnd({ ...setup, chosenAnimals, placements: {} });
   const final = history[history.length - 1]!;
   const early = history[2]!; // year 200
   let alive = 0;
@@ -104,15 +98,22 @@ function record(tally: Map<AnimalId, Tally>, worldSettings: WorldSettings, chose
 
 const start = performance.now();
 
-// Main survey: random worlds, random 3–5 animals, auto placement.
+// Main survey: random variants, random 3–5 animals, auto placement.
 const main = newTallies();
+const byVariant = new Map<EarthVariantId, { runs: number; picked: number; survived: number }>(
+  EARTH_VARIANTS.map((v) => [v.id, { runs: 0, picked: 0, survived: 0 }]),
+);
 let wipeouts = 0;
 let runsWithLoser = 0;
 let survivorsTotal = 0;
 for (let run = 0; run < runs; run++) {
-  const worldSettings = randomWorld(rng, `${masterSeed}-${run}`);
+  const setup = randomSetup(rng, `${masterSeed}-${run}`);
   const chosen = pickAnimals(rng, ANIMALS.map((a) => a.id), rng.int(3, 6));
-  const alive = record(main, worldSettings, chosen);
+  const alive = record(main, setup, chosen);
+  const v = byVariant.get(setup.earthVariant)!;
+  v.runs++;
+  v.picked += chosen.length;
+  v.survived += alive;
   if (alive === 0) wipeouts++;
   if (alive < chosen.length) runsWithLoser++;
   survivorsTotal += alive;
@@ -124,8 +125,8 @@ const leagueRuns = Math.max(50, Math.round(runs / 2));
 const league = newTallies();
 const nonHumans = ANIMALS.filter((a) => !a.isHuman).map((a) => a.id);
 for (let run = 0; run < leagueRuns; run++) {
-  const worldSettings = randomWorld(rng, `${masterSeed}-league-${run}`);
-  record(league, worldSettings, [...HUMANS, ...pickAnimals(rng, nonHumans, rng.int(0, 3))]);
+  const setup = randomSetup(rng, `${masterSeed}-league-${run}`);
+  record(league, setup, [...HUMANS, ...pickAnimals(rng, nonHumans, rng.int(0, 3))]);
 }
 
 const seconds = ((performance.now() - start) / 1000).toFixed(1);
@@ -163,6 +164,11 @@ for (const a of ANIMALS) {
   picked += t.picked;
   survived += t.survived;
   if (t.picked > 0 && t.top / t.picked > maxTop.share) maxTop = { id: a.id, share: t.top / t.picked };
+}
+console.log(`\nSurvival by Earth variant`);
+for (const v of EARTH_VARIANTS) {
+  const t = byVariant.get(v.id)!;
+  console.log(`  ${v.name.padEnd(15)} ${pct(t.survived, t.picked).padStart(5)}  (${t.runs} runs)`);
 }
 console.log(`\nAverage survival: ${pct(survived, picked)}`);
 console.log(`Runs with at least one extinction: ${runsWithLoser} (${pct(runsWithLoser, runs)})`);

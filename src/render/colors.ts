@@ -15,6 +15,9 @@ export const BIOME_COLORS: Record<Biome, string> = {
   volcanic: '#8C3B2A',
 };
 
+/** Frozen sea (ice biome on a water region), a little bluer than land ice. */
+export const SEA_ICE_COLOR = '#C9DCDF';
+
 export const THEME = {
   background: '#0F1A17',
   panel: '#16241F',

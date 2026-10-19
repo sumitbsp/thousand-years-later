@@ -1,17 +1,17 @@
 // Draws population dots on top of the map. Reads state only.
 
+import type { EarthWorld } from '../sim/earth';
 import type { Population } from '../sim/run';
 import { regionCenter, type MapLayout } from './mapRenderer';
-import type { World } from '../sim/world';
 import { ANIMAL_COLORS, THEME } from './colors';
 
 /**
- * One dot per species per region, arranged in a small ring around the hex
- * center. Dot radius grows with how full the region is for that species.
+ * One dot per species per region, arranged in a small ring around the
+ * region center. Dot radius grows with how full the region is for that species.
  */
 export function drawPopulations(
   ctx: CanvasRenderingContext2D,
-  world: World,
+  world: EarthWorld,
   layout: MapLayout,
   populations: readonly Population[],
   capacityOf: (p: Population) => number,

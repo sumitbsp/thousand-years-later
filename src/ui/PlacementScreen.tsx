@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { BIOME_NAMES } from '../sim/biomes';
 import type { AnimalId } from '../sim/data/animals';
 import { fitLabel, getAnimal, habitatFit, regionFitness, type FitLabel } from '../sim/ecology';
+import type { EarthWorld } from '../sim/earth';
 import type { Placements } from '../sim/placement';
-import type { World } from '../sim/world';
 import { regionAt, regionCenter, type MapLayout } from '../render/mapRenderer';
 import { MapView } from './MapView';
 
 interface Props {
-  world: World;
+  world: EarthWorld;
   chosen: readonly AnimalId[];
   fixed: Placements;
   /** Where every chosen animal starts now: fixed ones plus stable auto spots. */
@@ -59,7 +59,7 @@ export function PlacementScreen({ world, chosen, fixed, placements, subtitle, on
   }
 
   function renderTokens(layout: MapLayout) {
-    // Tokens sharing a hex fan out so each stays grabbable.
+    // Tokens sharing a region fan out so each stays grabbable.
     const perRegion = new Map<number, AnimalId[]>();
     for (const id of chosen) {
       const r = placements[id]!;
@@ -93,7 +93,7 @@ export function PlacementScreen({ world, chosen, fixed, placements, subtitle, on
                 if (!dragging) return;
                 const pos = pointerPos(e);
                 const moved = drag.moved || Math.hypot(pos.x - drag.startX, pos.y - drag.startY) > DRAG_THRESHOLD;
-                setDrag({ ...drag, ...pos, moved, target: regionAt(world, layout, pos.x, pos.y) });
+                setDrag({ ...drag, ...pos, moved, target: regionAt(layout, pos.x, pos.y) });
               }}
               onPointerUp={() => {
                 // A drop where the animal can't survive snaps it back.
@@ -117,8 +117,8 @@ export function PlacementScreen({ world, chosen, fixed, placements, subtitle, on
             }}
           >
             {blocked
-              ? `Can't survive here · ${BIOME_NAMES[world.regions[drag.target]!.biome]}`
-              : `Drop on ${BIOME_NAMES[world.regions[drag.target]!.biome]} · ${fitAt(drag.animalId, drag.target)}`}
+              ? `Can't survive here · ${world.regions[drag.target]!.name}`
+              : `Drop on ${world.regions[drag.target]!.name} · ${fitAt(drag.animalId, drag.target)}`}
           </div>
         )}
       </>
@@ -161,7 +161,7 @@ export function PlacementScreen({ world, chosen, fixed, placements, subtitle, on
                 <div className="animal-row-text">
                   <div className="animal-name">{getAnimal(id).name}</div>
                   <div className="muted">
-                    {BIOME_NAMES[world.regions[regionId]!.biome]} #{regionId} · <span className={FIT_CLASS[fit]}>{fit}</span>
+                    {world.regions[regionId]!.name} · {BIOME_NAMES[world.regions[regionId]!.biome]} · <span className={FIT_CLASS[fit]}>{fit}</span>
                   </div>
                 </div>
                 <span className={`pill ${placed ? 'placed' : 'auto'}`}>{placed ? 'Placed by you' : 'Auto'}</span>
@@ -174,7 +174,7 @@ export function PlacementScreen({ world, chosen, fixed, placements, subtitle, on
           </div>
         </div>
         <div className="tip">
-          <strong>Try this:</strong> drop an animal somewhere it doesn't belong. Penguins on a desert coast is allowed; sharks on land are not.
+          <strong>Try this:</strong> drop an animal somewhere it doesn't belong. Penguins in the Sahara is allowed; sharks on land are not.
         </div>
         <button className="primary" onClick={() => onStart(placements)}>Start 1,000 years</button>
         <div className="muted center small-text">{subtitle}</div>

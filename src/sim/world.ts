@@ -1,9 +1,12 @@
-// World generation. generateWorld() is a pure function of its settings:
-// same settings (including seed) always produce the exact same world.
+// Generated hex worlds (steps 1–2). No longer the game's map: the real Earth
+// (earth.ts) replaced it. Kept, tested and unused for a future "Alien worlds"
+// mode. generateWorld() is a pure function of its settings: same settings
+// (including seed) always produce the exact same world.
 
-import { BASE_PLANT_FOOD, classifyBiome, type Biome } from './biomes';
+import { BASE_PLANT_FOOD, classifyBiome } from './biomes';
 import { gridNeighbors, isInGrid, axialToOffset, offsetToAxial } from './hex';
 import { createRng, type Rng } from './rng';
+import { computeFlightHops, type Region, type World } from './worldMap';
 
 export interface WorldSettings {
   seed: string;
@@ -14,24 +17,18 @@ export interface WorldSettings {
   chaos: number;
 }
 
-export interface Region {
-  id: number;
+export interface HexRegion extends Region {
   q: number;
   r: number;
-  elevation: number;
   moisture: number;
-  temperature: number;
-  biome: Biome;
-  plantFood: number;
-  isWater: boolean;
 }
 
-export interface World {
+export interface HexWorld extends World {
   settings: WorldSettings;
   cols: number;
   rows: number;
   /** Indexed by id. id = row * cols + col. */
-  regions: Region[];
+  regions: HexRegion[];
 }
 
 export const GRID_COLS = 8;
@@ -50,21 +47,15 @@ export function clamp01(v: number): number {
 }
 
 /** Region id for axial coordinates, or null if outside the grid. */
-export function regionIdAt(world: World, q: number, r: number): number | null {
+export function regionIdAt(world: HexWorld, q: number, r: number): number | null {
   if (!isInGrid(q, r, world.cols, world.rows)) return null;
   const { col, row } = axialToOffset(q, r);
   return row * world.cols + col;
 }
 
-/** Ids of a region's neighbors, in fixed direction order. */
-export function regionNeighbors(world: World, id: number): number[] {
-  const region = world.regions[id]!;
-  return gridNeighbors(region.q, region.r, world.cols, world.rows).map(
-    (n) => regionIdAt(world, n.q, n.r)!,
-  );
-}
+export { regionNeighbors } from './worldMap';
 
-export function generateWorld(input: WorldSettings): World {
+export function generateWorld(input: WorldSettings): HexWorld {
   const settings: WorldSettings = {
     seed: input.seed,
     temperature: clamp01(input.temperature),
@@ -118,7 +109,7 @@ export function generateWorld(input: WorldSettings): World {
   // Elevation of the shoreline: the highest flooded region (0 when nothing is).
   const shore = waterCount > 0 ? byHeight[waterCount - 1]!.e : 0;
 
-  const regions: Region[] = coords.map(({ q, r }, id) => {
+  const regions: HexRegion[] = coords.map(({ q, r }, id) => {
     const water = isWater[id]!;
     const elev = elevation[id]!;
     const landHeight = water ? 0 : (elev - shore) / Math.max(1e-6, 1 - shore);
@@ -146,10 +137,11 @@ export function generateWorld(input: WorldSettings): World {
     const base = BASE_PLANT_FOOD[biome];
     const plantFood = water ? base : clamp01(base * (0.85 + 0.3 * moisture));
 
-    return { id, q, r, elevation: elev, moisture, temperature, biome, plantFood, isWater: water };
+    return { id, name: `Region ${id}`, q, r, elevation: elev, moisture, temperature, biome, plantFood, isWater: water };
   });
 
-  return { settings, cols, rows, regions };
+  const sorted = neighbors.map((ns) => ns.slice().sort((a, b) => a - b));
+  return { settings, cols, rows, regions, neighbors: sorted, flightHops: computeFlightHops(regions, sorted) };
 }
 
 function randomField(rng: Rng, count: number): number[] {

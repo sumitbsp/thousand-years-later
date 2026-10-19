@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BIOMES } from './biomes';
 import { PRESETS } from './presets';
-import { generateWorld, regionNeighbors, type World, type WorldSettings } from './world';
+import { generateWorld, regionNeighbors, type HexWorld as World, type WorldSettings } from './world';
 
 const base: WorldSettings = { seed: 'mossy-river-42', temperature: 0.55, rainfall: 0.6, seaLevel: 0.4, chaos: 0.5 };
 const SEEDS = ['mossy-river-42', 'a', 'b', 'quiet-fern-7', 'thousand', 'xyz-123', 'owl', 'frog-pond'];

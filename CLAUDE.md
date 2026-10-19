@@ -4,7 +4,7 @@ A browser game: the player picks a version of the real Earth and a few real anim
 
 **Core principle: show the chaos, don't tell it.** Mutations, events, territory changes and big moments must be visible on screen (creatures change shape, events animate on the map). Text supports what the player sees; it never replaces it.
 
-> **In transition:** the code still uses the generated hex world from steps 1–2. Step 2.5 moves to the real Earth (storybook atlas) and our own animated, parts-based creature art. See "Next: step 2.5" in FLOW.md. Keep the hex generator; it may become an "Alien worlds" mode.
+> **In transition:** since step 2.5a the simulation runs on the real Earth (52 regions, 5 variants), drawn flat for now. Step 2.5b adds the storybook atlas style, 2.5c our own animated, parts-based creature art. See "Next: step 2.5b and 2.5c" in FLOW.md. The hex generator stays, unused; it may become an "Alien worlds" mode.
 
 ## Every session
 
@@ -20,7 +20,7 @@ A browser game: the player picks a version of the real Earth and a few real anim
 - Vitest for tests
 - Static site, no backend
 
-Commands: `npm run dev`, `npm test`, `npm run build`, `npm run typecheck`, `npm run balance`.
+Commands: `npm run dev`, `npm test`, `npm run build`, `npm run typecheck`, `npm run balance`, `npm run earth` (regenerates Earth adjacency after editing regions).
 
 ## Folder structure
 

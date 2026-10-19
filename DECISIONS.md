@@ -4,6 +4,60 @@ Every meaningful decision and why, newest first. Add an entry whenever a non-obv
 
 ---
 
+## 2026-10-20 · Step 2.5a: the simulation runs on the real Earth (Claude Code)
+
+### 52 regions: 39 land, 13 sea
+- **Decision:** `src/sim/data/earthRegions.ts` lists 52 regions: every land and ocean region named in docs/DESIGN.md, plus Alaska, Canadian Forest, Rockies, Eastern Forests, Gulf Coast, Mexico, Central America, Andes, Pampas, British Isles, Scandinavia, Southern Europe, Middle East, Gobi, East Asia, Japan, Indonesia, Sahel, East Africa, Kalahari, Madagascar, Eastern Australia, New Guinea, New Zealand, Antarctica; and the Caribbean, Mediterranean, Coral Sea, Arabian Sea and South China Sea. Slightly above "~40–50".
+- **Why:** each continent needed enough regions to have borders worth crossing (Africa has 7, the Americas 14), and a few places exist for their biome: the Gulf Coast is the only swamp, Japan/Madagascar/New Zealand are islands that only owls reach. Fewer seas felt wrong: without the Mediterranean, Caribbean and Arabian Sea, far-off oceans owned the inland seas.
+- **Data field names:** the string id is `id` in the data and `key` on the world's regions, because `Region.id` is the numeric index the sim already uses everywhere.
+- **Who:** Claude Code
+
+### Regions can have several Voronoi sites
+- **Decision:** besides `center`, a region may list extra `sites`; its shape is the union of their cells. Shapes live in a flat lon/lat plane that wraps at ±180°, with separate diagrams for land sites (clipped to land) and sea sites (clipped to sea).
+- **Why:** one point per region can't describe the Arctic Ocean along the top of a flat map, a long coast like the Andes, or keep Madagascar from owning Mozambique and the Caribbean from owning Mexico's Pacific coast. A flat, wrapping plane makes the drawn cells (`d3-delaunay` on sites plus ±360° copies) match exactly what the sim uses; spherical Voronoi would need another library and wouldn't match a flat map.
+- **How the sites were placed:** a contact report (every touching pair, its length and one place it touches) after each edit, fixing pairs that touched in the wrong place.
+- **Who:** Claude Code
+
+### Adjacency is precomputed into a committed file
+- **Decision:** `npm run earth` rasterizes the globe at 0.25°, owns each cell by its nearest site, and writes the touching pairs to `src/sim/data/earthAdjacency.ts`. Pairs need at least 4 shared cell edges. A test fails when the file is stale. The geometry code lives in `src/sim/geo/` (so scripts may import it) but the tick never imports it.
+- **Why:** the sim only needs regions and a neighbor list; reading a generated list keeps it tiny, fast and trivially deterministic, and keeps topojson/d3 out of the tick. Polygon clipping would be exact but needs a library; the grid is simple and fast (0.2 s). The 4-edge minimum drops links made by a speck of island (New Caledonia linking New Zealand to Australia).
+- **Who:** Claude Code
+
+### Straits, water gaps and one sea link
+- **Decision:** land regions on different continents (`americas`, `eurasia`, `africa`, `australia`, `antarctica`) never neighbor each other by touching; only `STRAITS` join them: Bering, Gibraltar, Sinai, and Southeast Asia–Indonesia–New Guinea/Outback. North and South America are one continent (Panama is a real land border). Gibraltar is also listed as a sea link, because the passage is narrower than the grid (1 shared edge). `WATER_GAPS` (English Channel, Sea of Japan, La Pérouse) stop islands from touching the mainland where their cells spill across a narrow sea.
+- **Why:** the brief asks for straits only between continents. Water gaps were simpler than fighting the geometry: at Dover and in the Sea of Japan every site placement tried still left a few cells touching.
+- **Who:** Claude Code
+
+### Earth variants
+- **Decision:** variants are data in `earth.ts`: a temperature shift, explicit biome changes, an optional flood line and land bridges. Ice Age: −0.12, ice sheets over Canada, Alaska, the Rockies, Scandinavia and Britain, tundra over Europe, Eastern Forests and the Steppe; bridges Sahul (New Guinea–Eastern Australia), Doggerland (Britain–Europe), Korea (Japan–East Asia). Hot: +0.12, five regions become desert, Amazonia and Congo grassland, the polar land thaws to tundra. Drowned: +0.04, coastal land below elevation 0.15 floods (Gulf Coast, Amazonia, Pampas), India and Southeast Asia become swamp. Wild: volcanoes in five Ring-of-Fire/rift regions, chaos starts at 0.9. Sea ice follows the temperature on its own (the Arctic Ocean melts on Hot Earth, the Southern Ocean freezes in the Ice Age). A changed biome takes that biome's base plant food.
+- **Why:** explicit lists are readable and testable ("variants change biomes as described"); a rule-based reclassification would surprise players with, say, a jungle Britain. Bering and the island chain are straits on every variant (the brief), so the Ice Age bridges are the shallow-shelf ones instead; Sahul is the one docs/DESIGN.md names.
+- **Flooded land:** keeps its shape and neighbors but becomes water (sharks can swim into drowned Amazonia). The neighbor graph only changes through bridges.
+- **Who:** Claude Code
+
+### Flyers hop one sea, up to 3,000 km
+- **Decision:** `flightHops` = land one water region away whose center is within 3,000 km (great circle). The hex rule (any land past one water hex) is kept for hex worlds through the same `computeFlightHops`.
+- **Why:** Earth's sea regions are oceans, so "one water region" would let owls cross the Pacific in one go. 3,000 km reaches Madagascar, Japan, New Zealand, Britain and Greenland.
+- **Who:** Claude Code
+
+### The seed no longer touches the map; chaos waits for step 3
+- **Decision:** `RunInput = { earthVariant, chaos, seed, chosenAnimals, placements }`. The map depends only on the variant; the seed drives auto placement and the tick RNG. `chaos` is stored (and set by the variant) but the tick doesn't use it yet.
+- **Why:** chaos is "how often events and wild mutations happen", which arrive in step 3. Wiring it to weather now would only have to be re-tuned then.
+- **Who:** Claude Code
+
+### Placeholder drawing in the same flat projection
+- **Decision:** equirectangular, cropped to 84° N–80° S, biome colors per cell, thin outlines, coastline from `d3-geo`. Frozen sea gets its own paler blue (`SEA_ICE_COLOR`). Hover/drop outlines are clipped to the region's medium and include its coast. Hit-testing = land test + nearest site (`Delaunay.find`). The hex renderer is kept as `hexMapRenderer.ts`.
+- **Why:** the cells are computed in that plane, so any other projection would need resampled cells; 2.5b can switch projection with the storybook style. Cropping hides the Antarctic interior, which only stretches on a flat map.
+- **Who:** Claude Code
+
+### Re-balance on the real Earth
+- **Decision:** wild meat follows the plant factor at half strength (`× factor^0.5`, new `WILD_MEAT_SWING`); sea meat 1.3 → 1.15. Lizard: heat tolerance 0.95 → 0.9, breeding 0.6 → 0.45, preferred biomes desert, volcanic, coast, grassland (jungle dropped). Rabbit breeding 0.7 → 0.6; rat 0.68 → 0.58; smart humans tolerance 0.85 → 0.75 (still the widest), breeding 0.25 → 0.22 (still the slowest).
+- **Why:** the first Earth report had 89% survival and every pure hunter at ~100%: on Earth, species rarely meet, and a fixed wild-meat supply kept isolated hunters alive forever. Letting bad years reach wild meat fixed it; at full strength (`factor^1`) hunters fell to ~5% survival, at 0.5 they sit at 66–80%. Lizards were top in 76% of runs over 12.2 regions because the whole tropical belt counted as home; now 24–38% over 7–8 regions. Sea meat 1.0 starved sharks (55–65%); 1.15 keeps them ~90%. 600-run sweeps on two seeds, because 200 runs are noisy.
+- **Tried, not kept:** a higher migration fitness bar (0.55–0.6; fewer regions, same top shares), harsher poor-fit death, competition exponent 4 (no effect), rabbit heat tolerance 0.35 (rabbits win in the temperate belt, not the tropics).
+- **Result (200 runs):** average survival 79% (in range, at the top), extinctions in 58% of runs, 2 wipeouts. **Still over the ~35% top target:** rabbits 43–48%, smart humans 33–48% (by seed and league), rats up to 44%. When rabbits win they hold ~10 regions: their range is the whole temperate belt, and breeding rate barely matters. Likely needs a structural answer (dispersal by `speed`, or events in step 3) rather than more stat nudges.
+- **Who:** Claude Code
+
+---
+
 ## 2026-10-19 · Design revision: real Earth, visible chaos (Sumit + Claude (planning))
 
 After playing step 2, the hex map and dot populations felt flat. These decisions change what the game looks like and plan step 2.5. Nothing below is built yet. Full details: docs/DESIGN.md.

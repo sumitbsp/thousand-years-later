@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BIOME_NAMES } from '../sim/biomes';
 import { getAnimal } from '../sim/ecology';
 import { capacity, createRun, isFinished, speciesBiomass, speciesRegions, speciesTotal, step, type RunEvent, type RunInput, type RunState } from '../sim/run';
 import { ANIMAL_COLORS } from '../render/colors';
@@ -199,7 +198,7 @@ export function SimulateScreen({ input, onRunAgain, onNewSetup }: Props) {
 
 function describeEvent(e: RunEvent, state: RunState): string {
   const name = getAnimal(e.animalId).name;
-  const where = e.regionId === null ? '' : `${BIOME_NAMES[state.world.regions[e.regionId]!.biome]} #${e.regionId}`;
+  const where = e.regionId === null ? '' : state.world.regions[e.regionId]!.name;
   switch (e.type) {
     case 'spread':
       return `${name} spread to ${where}`;

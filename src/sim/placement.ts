@@ -4,7 +4,7 @@
 import type { AnimalId } from './data/animals';
 import { getAnimal, habitatFit, regionFitness } from './ecology';
 import { createRng } from './rng';
-import type { World } from './world';
+import type { World } from './worldMap';
 
 /** animalId → regionId. Objects are only read by key, never iterated for logic. */
 export type Placements = Partial<Record<AnimalId, number>>;

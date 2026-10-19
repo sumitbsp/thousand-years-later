@@ -2,7 +2,7 @@
 // tick, auto placement and the placement screen's fit labels.
 
 import { ANIMALS, type Animal, type AnimalId } from './data/animals';
-import { regionNeighbors, type Region, type World } from './world';
+import { regionNeighbors, type Region, type World } from './worldMap';
 
 const BY_ID = new Map<AnimalId, Animal>(ANIMALS.map((a) => [a.id, a]));
 
@@ -80,24 +80,12 @@ export function huntVulnerability(predator: Animal, prey: Animal): number {
 
 /**
  * Regions this animal can spread into from `regionId`. Everyone moves to
- * neighbors it can live in; flyers can also hop over one water hex.
+ * neighbors it can live in; flyers can also hop over one water region to
+ * nearby land (world.flightHops).
  */
 export function reachableRegions(world: World, animal: Animal, regionId: number): number[] {
-  const out: number[] = [];
-  const seen = new Set<number>([regionId]);
-  for (const n of regionNeighbors(world, regionId)) {
-    seen.add(n);
-    if (habitatFit(world, animal, world.regions[n]!) > 0) out.push(n);
-  }
-  if (animal.flies) {
-    for (const n of regionNeighbors(world, regionId)) {
-      if (!world.regions[n]!.isWater) continue;
-      for (const m of regionNeighbors(world, n)) {
-        if (seen.has(m)) continue;
-        seen.add(m);
-        if (habitatFit(world, animal, world.regions[m]!) > 0) out.push(m);
-      }
-    }
-  }
-  return out;
+  const candidates = animal.flies
+    ? [...regionNeighbors(world, regionId), ...world.flightHops[regionId]!]
+    : regionNeighbors(world, regionId);
+  return candidates.filter((n) => habitatFit(world, animal, world.regions[n]!) > 0);
 }
